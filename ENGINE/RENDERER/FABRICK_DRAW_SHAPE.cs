@@ -46,9 +46,9 @@ namespace Fabrick.ENGINE.RENDERER
         {
             FABRICK_TRANSFORM T = FABRICK_CAMERA_MANAGER.WorldToScreen(Pos, Size);
 
-            SDL.FRect R = MakeRect(T.GetPosition(), T.GetSize());
-            float X1 = T.GetPosition().X;
-            float Y1 = T.GetPosition().Y;
+            SDL.FRect R = MakeRect(T.GetActualPosition(), T.GetSize());
+            float X1 = T.GetActualPosition().X;
+            float Y1 = T.GetActualPosition().Y;
             float X2 = T.GetSize().X;
             float Y2 = T.GetSize().Y;
             float SIN = T.GetSin();

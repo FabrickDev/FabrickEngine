@@ -223,7 +223,7 @@ namespace Fabrick.ENGINE.RENDERER
                     else
                     {
                         FABRICK_TRANSFORM T = FABRICK_CAMERA_MANAGER.WorldToScreen(new Vector2(DRect.X, DRect.Y), new Vector2(DRect.W, DRect.H));
-                        SDL.FRect R = FABRICK_DRAW_SHAPE.MakeRect(T.GetPosition(), T.GetSize());
+                        SDL.FRect R = FABRICK_DRAW_SHAPE.MakeRect(T.GetActualPosition(), T.GetSize());
                         SDL.RenderTexture(ThisEngine.GetRenderer(), textTexture, IntPtr.Zero, R);
                     }
                 }
@@ -277,7 +277,7 @@ namespace Fabrick.ENGINE.RENDERER
             //SDL.SetRenderDrawColor(Renderer, Color.R, Color.G, Color.B, Color.A);
 
             FABRICK_TRANSFORM T = FABRICK_CAMERA_MANAGER.WorldToScreen(new Vector2(DRect.X, DRect.Y), new Vector2(DRect.W, DRect.H));
-            SDL.FRect R = FABRICK_DRAW_SHAPE.MakeRect(T.GetPosition(), T.GetSize());
+            SDL.FRect R = FABRICK_DRAW_SHAPE.MakeRect(T.GetActualPosition(), T.GetSize());
             SDL.RenderTexture(ThisEngine.GetRenderer(), textTexture, IntPtr.Zero, R);
 
             SDL.DestroyTexture(textTexture);
@@ -337,14 +337,13 @@ namespace Fabrick.ENGINE.RENDERER
             }
             SDL.DestroyTexture(textTexture);
         }
-        public static void DrawDevFPS(Vector2 Pos, float FontSize)
+        public static void DrawDevFPS(Vector2 Pos, float FontSize, int FPS)
         {
-            if(ThisEngine is null) return;
             FABRICK_COLOR BG_Color = new FABRICK_COLOR(15, 15, 15, 128);
             Vector2 Offsetter = new Vector2(6, 6);
-            Vector2 GetTextSize = GetSizeDrawDevText_UI($"FPS: {ThisEngine.FrameRateInt}", FontSize, Algin.Left);
+            Vector2 GetTextSize = GetSizeDrawDevText_UI($"FPS: {FPS}", FontSize, Algin.Left);
             FABRICK_DRAW_SHAPE.DrawFillRect_UI(Pos, GetTextSize + Offsetter + Offsetter, BG_Color);
-            DrawDevText_UI($"FPS: {ThisEngine.FrameRateInt}", Pos + Offsetter, FontSize, FABRICK_COLOR.White(), Algin.Left);
+            DrawDevText_UI($"FPS: {FPS}", Pos + Offsetter, FontSize, FABRICK_COLOR.White(), Algin.Left);
         }
     }
 }

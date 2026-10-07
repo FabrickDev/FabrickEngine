@@ -74,11 +74,13 @@ namespace Fabrick.ENGINE.CORE
         // Time Var
         private UInt64 prevTime = 0;
         private UInt64 nowTime = 0;
+        private float DeltaCount = 0;
         public float DeltaTime;
         private UInt64 StartPerformanceCounter = SDL.GetPerformanceCounter();
         private UInt64 EndPerformanceCounter = 0;
         public float FrameRate = 0f;
         public int FrameRateInt = 0;
+        private int FrameRateUpdateSecond = 0;
 
         // Dev Mode
         EDITOR_MANAGER EDITOR_MANAGER = new EDITOR_MANAGER();
@@ -396,7 +398,7 @@ namespace Fabrick.ENGINE.CORE
                 SPRITE_SHEET_MANAGER.AutoPlayResetInUseWorker();
 
                 // Render Loop
-                FABRICK_DRAW_TEXT.DrawDevFPS(new Vector2(2, 2), 3);
+                DrawFPS();
                 SDL.RenderPresent(renderer);
 
                 SDL.SetRenderDrawColor(renderer, DefaultBackgroundColor.R, DefaultBackgroundColor.G, DefaultBackgroundColor.B, DefaultBackgroundColor.A);
@@ -551,6 +553,17 @@ namespace Fabrick.ENGINE.CORE
         public Vector2 GetActualResolution()
         {
             return new Vector2(ActualResolutionX, ActualResolutionY);
+        }
+        public void DrawFPS()
+        {
+            float MaxDelta = DeltaTime * FrameRate;
+            DeltaCount += DeltaTime;
+            if (DeltaCount > MaxDelta)
+            {
+                FrameRateUpdateSecond = FrameRateInt;
+                DeltaCount = 0;
+            }
+            FABRICK_DRAW_TEXT.DrawDevFPS(new Vector2(2, 2), 3, FrameRateUpdateSecond);
         }
     }
 }
