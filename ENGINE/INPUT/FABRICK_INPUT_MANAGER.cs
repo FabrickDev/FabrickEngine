@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Numerics;
 using System.Reflection.Metadata.Ecma335;
 using Fabrick.ENGINE.CORE;
@@ -118,10 +119,11 @@ namespace Fabrick.ENGINE.INPUT
             int MouseButtonI = MouseButtonOffset + (int)keycode;
             if (IsMouseDown(keycode) && WasKeyStatePressed[MouseButtonI] == false)
             {
-                WasKeyStatePressed[MouseButtonI] = true;
+                //WasKeyStatePressed[MouseButtonI] = true;
+                PreviousKeyState[MouseButtonI] = true;
                 return true;
             }
-            if (CurrentKeyState[MouseButtonI] == false)
+            if (IsMouseUp(keycode))
             {
                 WasKeyStatePressed[MouseButtonI] = false;
             }
@@ -131,8 +133,9 @@ namespace Fabrick.ENGINE.INPUT
         {
             int MouseButtonI = MouseButtonOffset + (int)keycode;
 
-            if (PreviousKeyState[MouseButtonI] == true && CurrentKeyState[MouseButtonI] == false)
+            if (PreviousKeyState[MouseButtonI] == true && IsMouseUp(keycode))
             {
+                PreviousKeyState[MouseButtonI] = false;
                 return true;
             }
             return false;
@@ -153,6 +156,19 @@ namespace Fabrick.ENGINE.INPUT
             else
             {
                 return Vector2.Zero;
+            }
+        }
+        internal static void AfterCycleHandle()
+        {
+            Array enumMouseButton = Enum.GetValues(typeof(SDL.MouseButtonFlags));
+            int j = 0;
+            foreach (uint i in enumMouseButton)
+            {
+                if (IsMouseDown((SDL.MouseButtonFlags)i))
+                {
+                    WasKeyStatePressed[MouseButtonOffset + (int)i] = true;
+                }
+                j++;
             }
         }
         public static Vector2 GetMouseScroll()
@@ -185,6 +201,11 @@ namespace Fabrick.ENGINE.INPUT
             {
                 return Vector2.Zero;
             }
+        }
+
+        internal static bool IsKeyDown(object sDLK_ESCAPE)
+        {
+            throw new NotImplementedException();
         }
     }   
 }

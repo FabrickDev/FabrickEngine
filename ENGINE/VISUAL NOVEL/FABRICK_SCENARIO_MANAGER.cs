@@ -10,13 +10,15 @@ namespace Fabrick.ENGINE.VISUAL_NOVEL
     public class FABRICK_SCENARIO_MANAGER
     {
         public static Dictionary<string, List<SCENARIO_MODULE_DATA>> ScenarioList = new();
-        public static Dictionary<string, FABRICK_VISUAL_NOVEL_PORTRAIT_CHAR> PortraitsCastList= new();
+        public static Dictionary<string, FABRICK_VISUAL_NOVEL_PORTRAIT_CHAR> PortraitsCastList = new();
         public static string CurrentScenario = "";
         private static string VisualNovelSceneName = "";
-        public static string VisualNovelCast = "Narrator";
+        public static string VisualNovelCurrentCast = ""; // Control who speaking
+        public static string VisualNovelCurrentCastVariant = "Normal";
+        public static string VisualNovelCast = "Narrator"; // This actually just for display
         public static string VisualNovelText = "I'm Appearing...";
         public static bool VisualNovelStarting = false;
-        public static bool VisualNovelPrepared = false;
+        public static bool VisualNovelRunning = false;
         public static bool VisualNovelEnding = false;
         public static bool VisualNovelEnded = false;
         public static bool VisualNovelTextNext = true;
@@ -30,89 +32,13 @@ namespace Fabrick.ENGINE.VISUAL_NOVEL
         public static bool FormValueNext = true;
 
         private static List<string> NextModuleToExecute = new();
-        private static bool PauseModuleExecuting = false;
         internal static void InitializeScenarioHandle()
         {
             // Testing Purpose
-            AddScenario("Testing Scenario");
-            List<SCENARIO_MODULE_DATA> ScenarioTesting = new();
-
-            // Start module
-            SCENARIO_MODULE_DATA Data1 = new();
-            Data1.Type = SCENARIO_MODULE_TYPE.Start;
-            Data1.ModuleId = "A1";
-            Data1.OutputToModule.Add("A2");
-            
-            // Dialogue Module
-            SCENARIO_MODULE_DATA Data2 = new();
-            Data2.Type = SCENARIO_MODULE_TYPE.Dialogue;
-            Data2.ModuleId = "A2";
-            Data2.DialogueCast = "Feb";
-            Data2.DialogueCastVariant = "Normal";
-            Data2.DialogueText = "Scenario: 'Testing Scenario' Start.\nThis Dialogue Text From Module A2";
-            Data2.OutputToModule.Add("A3");
-
-            // Dialogue Module
-            SCENARIO_MODULE_DATA Data3 = new();
-            Data3.Type = SCENARIO_MODULE_TYPE.Dialogue;
-            Data3.ModuleId = "A3";
-            Data3.DialogueCast = "Hargo";
-            Data3.DialogueCastVariant = "Normal";
-            Data3.DialogueText = "This Dialogue Text From Module A3.\nWell... You Know, I Just Ask Hendrik Last Week for A Dinner.\nWe Ended Drunk Together.";
-            Data3.OutputToModule.Add("A4");
-
-            // Dialogue Module
-            SCENARIO_MODULE_DATA Data4 = new();
-            Data4.Type = SCENARIO_MODULE_TYPE.Dialogue;
-            Data4.ModuleId = "A4";
-            Data4.DialogueCast = "Hendrik";
-            Data4.DialogueCastVariant = "Normal";
-            Data4.DialogueText = "This Dialogue Text From Module A4 \nLorem ipsum dolor sit amet, consectetur adipiscing elit, \nsed do eiusmod tempor incididunt ut labore et dolore \nmagna aliqua. Ut enim ad minim veniam, \nquis nostrud exercitation ullamco laboris nisi ut aliquip ex ea";
-            Data4.OutputToModule.Add("A5");
-            
-            // Dialogue Module
-            SCENARIO_MODULE_DATA Data5 = new();
-            Data5.Type = SCENARIO_MODULE_TYPE.Dialogue;
-            Data5.ModuleId = "A5";
-            Data5.DialogueCast = "Hendrik";
-            Data5.DialogueCastVariant = "Surprised";
-            Data5.DialogueText = "What just I say???";
-            Data5.OutputToModule.Add("A6");
-            
-            // Dialogue Module
-            SCENARIO_MODULE_DATA Data6 = new();
-            Data6.Type = SCENARIO_MODULE_TYPE.Dialogue;
-            Data6.ModuleId = "A6";
-            Data6.DialogueCast = "Hendrik";
-            Data6.DialogueCastVariant = "Surprised";
-            Data6.DialogueText = "Who Is Jason Anyway?\nI See Them A Lot In The Folder 'Game/Assets/Scene'";
-            Data6.OutputToModule.Add("A7");
-
-            // Dialogue Module
-            SCENARIO_MODULE_DATA Data7 = new();
-            Data7.Type = SCENARIO_MODULE_TYPE.Dialogue;
-            Data7.ModuleId = "A7";
-            Data7.DialogueCast = "Narrator";
-            Data7.DialogueText = "Aight Guys, This Scenario: 'Testing Scenario', will end here!!";
-            Data7.OutputToModule.Add("A8");
-
-            // End Module
-            SCENARIO_MODULE_DATA Data8 = new();
-            Data8.Type = SCENARIO_MODULE_TYPE.End;
-            Data8.ModuleId = "A8";
-
-            ScenarioTesting.Add(Data1);
-            ScenarioTesting.Add(Data2);
-            ScenarioTesting.Add(Data3);
-            ScenarioTesting.Add(Data4);
-            ScenarioTesting.Add(Data5);
-            ScenarioTesting.Add(Data6);
-            ScenarioTesting.Add(Data7);
-            ScenarioTesting.Add(Data8);
-            ReplaceScenarioModuleData("Testing Scenario", ScenarioTesting);
+            AddScenario("Testing Scenario", "Test");
         }
         // Portraits Cast
-        public static void AssignPortraitCast(string Name, FABRICK_VISUAL_NOVEL_PORTRAIT_CHAR PostraitsCastTemplate)
+        public static void AssignPortraitCast(string Name, string DisplayName, FABRICK_VISUAL_NOVEL_PORTRAIT_CHAR PostraitsCastTemplate)
         {
             if (PortraitsCastList.ContainsKey(Name))
             {
@@ -120,6 +46,7 @@ namespace Fabrick.ENGINE.VISUAL_NOVEL
                 return;
             }
             PortraitsCastList[Name] = PostraitsCastTemplate;
+            PortraitsCastList[Name].DisplayName = DisplayName;
         }
         public static void SetFocusCast(string Cast, string Variant)
         {
@@ -127,7 +54,7 @@ namespace Fabrick.ENGINE.VISUAL_NOVEL
             {
                 foreach (string ThisKey in PortraitsCastList.Keys)
                 {
-                    PortraitsCastList[ThisKey].SetPortraitVisibility(1f);
+                    PortraitsCastList[ThisKey].SetPortraitVisibility(0.5f);
                 }
                 //FABRICK_DEBUG.SimpleMessageWarning($"[FABRICK_SCENARIO_MANAGER] Cannot Set Focus Cast: {Name} cus its doesn't exist!!");
                 return;
@@ -149,44 +76,46 @@ namespace Fabrick.ENGINE.VISUAL_NOVEL
             }
             VisualNovelSceneName = _tmp;
         }
-        public static void AddScenario(string ScenarioName)
+        public static void AddScenario(string ScenarioName, string ScenarioCategory)
         {
-            if (!ScenarioList.ContainsKey(ScenarioName))
+            if (!ScenarioList.ContainsKey(ScenarioName + "@" + ScenarioCategory))
             {
-                ScenarioList[ScenarioName] = new();
+                ScenarioList[ScenarioName + "@" + ScenarioCategory] = new();
             }
             else
             {
-                FABRICK_DEBUG.SimpleMessageWarning($"[FABRICK_SCENARIO_MANAGER] Cannot Adding Scenario: {ScenarioName} cus its already exist!!");
+                FABRICK_DEBUG.SimpleMessageWarning($"[FABRICK_SCENARIO_MANAGER] Cannot Adding Scenario: {ScenarioName}, Category: {ScenarioCategory} cus its already exist!!");
             }
         }
-        public static void ReplaceScenarioModuleData(string ScenarioName, List<SCENARIO_MODULE_DATA> ScenarioData)
+        public static void ReplaceScenarioModuleData(string ScenarioName, string ScenarioCategory, List<SCENARIO_MODULE_DATA> ScenarioData)
         {
-            if (ScenarioList.ContainsKey(ScenarioName))
+            string ThisScenario = ScenarioName + "@" + ScenarioCategory;
+            if (ScenarioList.ContainsKey(ThisScenario))
             {
-                ScenarioList[ScenarioName] = ScenarioData;
+                ScenarioList[ThisScenario] = ScenarioData;
             }
             else
             {
-                FABRICK_DEBUG.SimpleMessageWarning($"[FABRICK_SCENARIO_MANAGER] Cannot ReplaceScenarioModuleData cus scenario: {ScenarioName} doesn't exist!!");
+                FABRICK_DEBUG.SimpleMessageWarning($"[FABRICK_SCENARIO_MANAGER] Cannot ReplaceScenarioModuleData cus scenario: {ScenarioName}, Category: {ScenarioCategory} doesn't exist!!");
                 return;
             }
         }
-        public static void RunScenario(string ScenarioName)
+        public static void RunScenario(string ScenarioName, string ScenarioCategory)
         {
-            if (!ScenarioList.ContainsKey(ScenarioName))
+            string ThisScenario = ScenarioName + "@" + ScenarioCategory;
+            if (!ScenarioList.ContainsKey(ThisScenario))
             {
-                FABRICK_DEBUG.SimpleMessageWarning($"[FABRICK_SCENARIO_MANAGER] Cannot Run Scenario: {ScenarioName} doesn't Exist!!");
+                FABRICK_DEBUG.SimpleMessageWarning($"[FABRICK_SCENARIO_MANAGER] Cannot Run Scenario: {ScenarioName}, Category: {ScenarioCategory} doesn't Exist!!");
                 return;
             }
-            if (CurrentScenario != ScenarioName)
+            if (CurrentScenario != ThisScenario)
             {
-                FABRICK_DEBUG.Log($"[FABRICK_SCENARIO_MANAGER] Run Scenario: {ScenarioName}");
+                FABRICK_DEBUG.Log($"[FABRICK_SCENARIO_MANAGER] Run Scenario: {ScenarioName}, Category: {ScenarioCategory}");
                 VisualNovelTextNext = true;
                 VisualNovelText = "";
                 NextModuleToExecute.Clear();
-                CurrentScenario = ScenarioName;
-                for (int i = 0; i < ScenarioList[CurrentScenario].Count; i++)
+                CurrentScenario = ThisScenario;
+                for (int i = 0; i < ScenarioList[ThisScenario].Count; i++)
                 {
                     ScenarioList[CurrentScenario][i].IsFinishedModule = false;
                 }
@@ -195,9 +124,11 @@ namespace Fabrick.ENGINE.VISUAL_NOVEL
         internal static void RunScenarioHandle()
         {
             // How to pause scenario?
+
+            // Testing Scenario Run
             if (FABRICK_INPUT.IsKeyDown(SDL3.SDL.Scancode.LCtrl))
             {
-                RunScenario("Testing Scenario");
+                RunScenario("Testing Scenario", "Test");
             }
             if (VisualNovelEnded)
             {
@@ -214,7 +145,7 @@ namespace Fabrick.ENGINE.VISUAL_NOVEL
             {
                 return;
             }
-            if (VisualNovelPrepared)
+            if (VisualNovelRunning)
             {
                 VisualNovelStarting = false;
             }
@@ -223,7 +154,60 @@ namespace Fabrick.ENGINE.VISUAL_NOVEL
                 return;
             }
 
+            // Initialize Start
+            if (!VisualNovelRunning)
+            {
+                SCENARIO_MODULE_DATA StartData = ScenarioList[CurrentScenario].FirstOrDefault(x => x.Type == SCENARIO_MODULE_TYPE.Start);
+                SetNextListScenario(StartData.OutputToModule);
+                FABRICK_SCENE_MANAGER.AddOverlaySceneRunList(VisualNovelSceneName);
+                VisualNovelStarting = true;
+                VisualNovelEnding = false;
+                FABRICK_DEBUG.Log("[FABRICK_SCENARIO_MANAGER] Starting Scenario: " + CurrentScenario);
+                return;
+            }
 
+            // Based NextModuleToExecute
+            foreach (string ThisExecute in NextModuleToExecute)
+            {
+                SCENARIO_MODULE_DATA ThisData = ScenarioList[CurrentScenario].FirstOrDefault(x => x.ModuleId == ThisExecute);
+                if (ThisData.Type == SCENARIO_MODULE_TYPE.ChangeCast)
+                {
+                    VisualNovelCurrentCast = ThisData.DialogueCast;
+                    VisualNovelCurrentCastVariant = ThisData.DialogueCastVariant;
+                    VisualNovelCast = VisualNovelCurrentCast;
+                    FABRICK_DEBUG.Log("[FABRICK_SCENARIO_MANAGER] Change Cast: " + VisualNovelCurrentCast);
+                }
+                if (ThisData.Type == SCENARIO_MODULE_TYPE.Dialogue)
+                {
+                    // Execute Dialogue Text
+                    if (VisualNovelTextNext)
+                    {
+                        //VisualNovelCast = ThisScenarioModuleData.DialogueCast;
+                        VisualNovelText = ThisData.DialogueText;
+                        SetFocusCast(VisualNovelCurrentCast, VisualNovelCurrentCastVariant);
+                        VisualNovelTextNext = false;
+                        SetNextListScenario(ThisData.OutputToModule);
+                        FABRICK_DEBUG.Log("[FABRICK_SCENARIO_MANAGER] Dialogue: " + VisualNovelText);
+                        return;
+                    }
+                }
+                if (ThisData.Type == SCENARIO_MODULE_TYPE.End)
+                {
+                    VisualNovelRunning = false;
+                    VisualNovelStarting = false;
+                    VisualNovelEnding = true;
+                    FABRICK_DEBUG.Log($"[FABRICK_SCENARIO_MANAGER] End Of Scenario: {CurrentScenario}");
+                    //FABRICK_DEBUG.SimpleMessageInfo($"[FABRICK_SCENARIO_MANAGER] End of Scenario: {CurrentScenario}");
+                    //ScenarioList[CurrentScenario][IndexScenarioData - 1].IsFinishedModule = true;
+                    VisualNovelCast = "";
+                    VisualNovelText = "";
+                    CurrentScenario = "";
+                }
+            }
+            // End Scenario Handle
+            
+
+            return;
             int IndexScenarioData = 0;
             foreach (SCENARIO_MODULE_DATA ThisScenarioModuleData in ScenarioList[CurrentScenario])
             {
@@ -236,10 +220,11 @@ namespace Fabrick.ENGINE.VISUAL_NOVEL
                 FABRICK_DEBUG.Log($"[FABRICK_SCENARIO_MANAGER] Running Module: {ThisScenarioModuleData.ModuleId}");
 
                 // Getting Start Module
-                if (ThisScenarioModuleData.Type == SCENARIO_MODULE_TYPE.Start && !VisualNovelPrepared)
+                if (ThisScenarioModuleData.Type == SCENARIO_MODULE_TYPE.Start && !VisualNovelRunning)
                 {
                     // What To Do?
                     //FABRICK_SCENE_MANAGER.ClearOverlaySceneRunList();
+                    SetNextListScenario(ThisScenarioModuleData.OutputToModule);
                     FABRICK_DEBUG.Log($"[FABRICK_SCENARIO_MANAGER] Starting Scene VN: {VisualNovelSceneName}");
                     FABRICK_SCENE_MANAGER.AddOverlaySceneRunList(VisualNovelSceneName);
                     VisualNovelStarting = true;
@@ -260,9 +245,9 @@ namespace Fabrick.ENGINE.VISUAL_NOVEL
                         // Execute Dialogue Text
                         if (VisualNovelTextNext)
                         {
-                            VisualNovelCast = ThisScenarioModuleData.DialogueCast;
+                            //VisualNovelCast = ThisScenarioModuleData.DialogueCast;
                             VisualNovelText = ThisScenarioModuleData.DialogueText;
-                            SetFocusCast(ThisScenarioModuleData.DialogueCast, ThisScenarioModuleData.DialogueCastVariant);
+                            SetFocusCast(VisualNovelCurrentCast, VisualNovelCurrentCastVariant);
 
                             VisualNovelTextNext = false;
                             ScenarioList[CurrentScenario][IndexScenarioData - 1].IsFinishedModule = true;
@@ -404,7 +389,7 @@ namespace Fabrick.ENGINE.VISUAL_NOVEL
                     }
                     else if (ThisScenarioModuleData.Type == SCENARIO_MODULE_TYPE.ChangeScenario)
                     {
-                        RunScenario(ThisScenarioModuleData.ScenarioName);
+                        RunScenario(ThisScenarioModuleData.ScenarioName, ThisScenarioModuleData.ScenarioCategory);
                     }
                     else if (ThisScenarioModuleData.Type == SCENARIO_MODULE_TYPE.Coice)
                     {
@@ -420,12 +405,18 @@ namespace Fabrick.ENGINE.VISUAL_NOVEL
                     {
                         AddNextModuleList(ThisScenarioModuleData.OutputToModule);
                     }
+                    else if (ThisScenarioModuleData.Type == SCENARIO_MODULE_TYPE.ChangeCast)
+                    {
+                        VisualNovelCurrentCast = ThisScenarioModuleData.DialogueCast;
+                        VisualNovelCurrentCastVariant = ThisScenarioModuleData.DialogueCastVariant;
+                        FABRICK_DEBUG.SimpleMessageWarning($"[FABRICK_SCENARIO_MANAGER] ChangeCast: {VisualNovelCurrentCast}, Variant: {VisualNovelCurrentCastVariant}");
+                    }
                 }
 
                 // Getting End Module
                 if (ThisScenarioModuleData.Type == SCENARIO_MODULE_TYPE.End)
                 {
-                    VisualNovelPrepared = false;
+                    VisualNovelRunning = false;
                     VisualNovelStarting = false;
                     VisualNovelEnding = true;
                     FABRICK_DEBUG.Log($"[FABRICK_SCENARIO_MANAGER] End Of Scenario: {CurrentScenario}");
@@ -464,6 +455,11 @@ namespace Fabrick.ENGINE.VISUAL_NOVEL
         }
         private static void SetNextListScenario(List<string> Scenarios)
         {
+            FABRICK_DEBUG.Log("[FABRICK_SCENARIO_MANAGER] Next to Execute:");
+            foreach (string thisMod in Scenarios)
+            {
+                FABRICK_DEBUG.Log(thisMod);
+            }
             NextModuleToExecute.Clear();
             NextModuleToExecute = Scenarios.ToList();
         }

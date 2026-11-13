@@ -14,19 +14,19 @@ namespace Fabrick.ENGINE.RENDERER
         Center = 1,
         Right = 2
     }
-    public struct FontData
+    public class FontData
     {
-        public string File;
+        public uint Quality = 64;
+        public uint Renderquality = 8;
+        public string File = "";
         public nint Font;
     }
     public class FABRICK_DRAW_TEXT
     {
         private static FABRICK_ENGINE? ThisEngine;
         private static string MainEngineDevAssetsPath = "D:\\FABRICK ENGINE\\FABRICK_ENGINE\\FABRICK_ENGINE\\ENGINE\\DEV_ASSETS\\";
-        private static uint FontQuality = 64;
-        private static uint FontRenderQuality = 8;
         private static string DefaultFontFileName = "Segoe UI Bold.ttf";
-        private static string DefaultFontName = "DefaultFont";
+        public static string DefaultFontName = "DefaultFont";
         private static Dictionary<string, FontData> FontList = new();
         
         public static void UpdateEngine(FABRICK_ENGINE ENGINE)
@@ -36,9 +36,9 @@ namespace Fabrick.ENGINE.RENDERER
         public static void Initialize()
         {
             // Assign Default Font First
-            FontData _data;
+            FontData _data = new();
             _data.File = Path.Combine(MainEngineDevAssetsPath, "FONT", DefaultFontFileName);
-            _data.Font = TTF.OpenFont(_data.File, FontQuality);
+            _data.Font = TTF.OpenFont(_data.File, _data.Quality);
             FontList[DefaultFontName] = _data;
 
             return;
@@ -60,9 +60,9 @@ namespace Fabrick.ENGINE.RENDERER
                 FileName = Path.Combine(ThisEngine.MainEngineDataPath, "Font", FileName);
             }
 
-            FontData _data;
+            FontData _data = new();
             _data.File = FileName;
-            _data.Font = TTF.OpenFont(_data.File, FontQuality);
+            _data.Font = TTF.OpenFont(_data.File, _data.Quality);
             FontList[Name] = _data;
             FABRICK_DEBUG.Log($"[FABRICK_DRAW_TEXT] Added Font {Name}");
         }
@@ -89,21 +89,43 @@ namespace Fabrick.ENGINE.RENDERER
         {
             return DefaultFontName;
         }
+        public static void SetFontQuality(string FontName, uint Quality)
+        {
+            if (ThisEngine is not null)
+            {
+                if (!FontList.ContainsKey(FontName))
+                {
+                    FABRICK_DEBUG.SimpleMessageError("[FABRICK_DRAW_TEXT] Error Cannot Set Quality font: " + FontName);
+                    return;
+                }
+                TTF.CloseFont(FontList[FontName].Font);
+                FontData _data = new()
+                {
+                    Quality = Quality,
+                    Renderquality = Quality / 8
+                };
+                _data.File = FontList[FontName].File;
+                _data.Font = TTF.OpenFont(FontList[FontName].File, _data.Quality);
+                FontList[FontName] = _data;
+            }
+        }
         public static void SetFontQuality(uint Quality)
         {
             if (ThisEngine is not null)
             {
-                FontQuality = Quality;
-                FontRenderQuality = Quality / 8;
                 foreach (string ThisFont in FontList.Keys)
                 {
                     TTF.CloseFont(FontList[ThisFont].Font);
-                    
-                    FontData _data;
+                    FontData _data = new()
+                    {
+                        Quality = Quality,
+                        Renderquality = Quality / 8
+                    };
                     _data.File = FontList[ThisFont].File;
-                    _data.Font = TTF.OpenFont(FontList[ThisFont].File, FontQuality);
+                    _data.Font = TTF.OpenFont(FontList[ThisFont].File, _data.Quality);
                     FontList[ThisFont] = _data;
                 }
+
                 PrintFontList();
             }
         }
@@ -123,7 +145,7 @@ namespace Fabrick.ENGINE.RENDERER
 
             DrawTextAdvanced(ModifiedText, FontName, Pos, Size, Color, Align, out BoundSize, MaxSentenceEachLine, ExtraPaddingEachLine, true, IsUI);
         }
-        public static void DrawTextAdvanced(string Text, string FontName, Vector2 Pos, float Size, FABRICK_COLOR Color, Algin Align, out Vector2 SizeBound, int MaxSentenceEachLine = 0, int ExtraPaddingEachLine = 0, bool Render = true, bool IsUI = false)
+        public static void DrawTextAdvanced(string Text, string FontName, Vector2 Pos, float Size, FABRICK_COLOR Color, Algin Align, out Vector2 SizeBound, int MaxSentenceEachLine = 0, int ExtraPaddingEachLine = 0, bool Render = true, bool IsUI = false, bool Optimize = true)
         {
             if(ThisEngine is null)
             {
@@ -146,9 +168,12 @@ namespace Fabrick.ENGINE.RENDERER
             bool NextLine = false;
             for (int j = 0; j < Text.Length; j++)
             {
-                if (Iterator % (MaxSentenceEachLine) == 0 && MaxSentenceEachLine > 0)
+                if (MaxSentenceEachLine > 0)
                 {
-                    NextLine = true;
+                    if (Iterator % (MaxSentenceEachLine) == 0)
+                    {
+                        NextLine = true;
+                    }
                 }
 
                 if (Text[j] != '\n') //IDK Why this is not working bruh
@@ -186,22 +211,22 @@ namespace Fabrick.ENGINE.RENDERER
                 SDL.FRect DRect = new SDL.FRect();
                 if (Align == Algin.Center)
                 {
-                    DRect.W = W * Size / FontRenderQuality;
-                    DRect.H = H * Size / FontRenderQuality;
+                    DRect.W = W * Size / FontList[FontName].Renderquality;
+                    DRect.H = H * Size / FontList[FontName].Renderquality;
                     DRect.X = Pos.X - (DRect.W / 2);
                     DRect.Y = Pos.Y;
                 }
                 if (Align == Algin.Left)
                 {
-                    DRect.W = W * Size / FontRenderQuality;
-                    DRect.H = H * Size / FontRenderQuality;
+                    DRect.W = W * Size / FontList[FontName].Renderquality;
+                    DRect.H = H * Size / FontList[FontName].Renderquality;
                     DRect.X = Pos.X;
                     DRect.Y = Pos.Y;
                 }
                 if (Align == Algin.Right)
                 {
-                    DRect.W = W * Size / FontRenderQuality;
-                    DRect.H = H * Size / FontRenderQuality;
+                    DRect.W = W * Size / FontList[FontName].Renderquality;
+                    DRect.H = H * Size / FontList[FontName].Renderquality;
                     DRect.X = Pos.X - DRect.W;
                     DRect.Y = Pos.Y;
                 }
@@ -214,6 +239,7 @@ namespace Fabrick.ENGINE.RENDERER
                 {
                     TextLineTextureSize.Add(new Vector2(DRect.W, DRect.H));
                 }
+
                 if (Render)
                 {
                     if (IsUI)
@@ -224,6 +250,14 @@ namespace Fabrick.ENGINE.RENDERER
                     {
                         FABRICK_TRANSFORM T = FABRICK_CAMERA_MANAGER.WorldToScreen(new Vector2(DRect.X, DRect.Y), new Vector2(DRect.W, DRect.H));
                         SDL.FRect R = FABRICK_DRAW_SHAPE.MakeRect(T.GetActualPosition(), T.GetSize());
+                        if ((R.X > FABRICK_CAMERA_MANAGER.GetCamSize().X || 
+                            R.Y > FABRICK_CAMERA_MANAGER.GetCamSize().Y ||
+                            R.X + R.W < 0 ||
+                            R.Y + R.H < 0) && Optimize)
+                        {
+                            SDL.DestroyTexture(textTexture);
+                            continue;
+                        }
                         SDL.RenderTexture(ThisEngine.GetRenderer(), textTexture, IntPtr.Zero, R);
                     }
                 }
@@ -236,7 +270,7 @@ namespace Fabrick.ENGINE.RENDERER
                 SizeBound = new Vector2(Math.Max(SizeBound.X, TextLineTextureSize[i].X), SizeBound.Y + TextLineTextureSize[i].Y);
             }
         }
-        public static void DrawDevText(string Text, Vector2 Pos, float Size, FABRICK_COLOR Color, Algin Align)
+        public static void DrawDevText(string Text, Vector2 Pos, float Size, FABRICK_COLOR Color, Algin Align, bool Optimize = true)
         {
             if(ThisEngine is null)
             {
@@ -250,8 +284,8 @@ namespace Fabrick.ENGINE.RENDERER
             SDL.FRect DRect = new SDL.FRect();
             if (Align == Algin.Center)
             {
-                DRect.W = W * Size / FontRenderQuality;
-                DRect.H = H * Size / FontRenderQuality;
+                DRect.W = W * Size / FontList[DefaultFontName].Renderquality;
+                DRect.H = H * Size / FontList[DefaultFontName].Renderquality;
                 DRect.X = Pos.X - (DRect.W / 2);
                 DRect.Y = Pos.Y;
             }
@@ -260,16 +294,16 @@ namespace Fabrick.ENGINE.RENDERER
             {
                 DRect.X = Pos.X;
                 DRect.Y = Pos.Y;
-                DRect.W = W * Size / FontRenderQuality;
-                DRect.H = H * Size / FontRenderQuality;
+                DRect.W = W * Size / FontList[DefaultFontName].Renderquality;
+                DRect.H = H * Size / FontList[DefaultFontName].Renderquality;
             }
 
             if (Align == Algin.Right)
             {
                 DRect.X = Pos.X - DRect.W;
                 DRect.Y = Pos.Y;
-                DRect.W = W * Size / FontRenderQuality;
-                DRect.H = H * Size / FontRenderQuality;
+                DRect.W = W * Size / FontList[DefaultFontName].Renderquality;
+                DRect.H = H * Size / FontList[DefaultFontName].Renderquality;
             }
             
 
@@ -278,8 +312,15 @@ namespace Fabrick.ENGINE.RENDERER
 
             FABRICK_TRANSFORM T = FABRICK_CAMERA_MANAGER.WorldToScreen(new Vector2(DRect.X, DRect.Y), new Vector2(DRect.W, DRect.H));
             SDL.FRect R = FABRICK_DRAW_SHAPE.MakeRect(T.GetActualPosition(), T.GetSize());
+            if ((R.X > FABRICK_CAMERA_MANAGER.GetCamSize().X || 
+                R.Y > FABRICK_CAMERA_MANAGER.GetCamSize().Y ||
+                R.X + R.W < 0 ||
+                R.Y + R.H < 0) && Optimize)
+            {
+                SDL.DestroyTexture(textTexture);
+                return;
+            }
             SDL.RenderTexture(ThisEngine.GetRenderer(), textTexture, IntPtr.Zero, R);
-
             SDL.DestroyTexture(textTexture);
         }
         public static void DrawDevText_UI(string Text, Vector2 Pos, float Size, FABRICK_COLOR Color, Algin Align)
@@ -307,8 +348,8 @@ namespace Fabrick.ENGINE.RENDERER
             SDL.FRect DRect = new SDL.FRect();
             if (Align == Algin.Center)
             {
-                DRect.W = W * Size / FontRenderQuality;
-                DRect.H = H * Size / FontRenderQuality;
+                DRect.W = W * Size / FontList[DefaultFontName].Renderquality;
+                DRect.H = H * Size / FontList[DefaultFontName].Renderquality;
                 DRect.X = Pos.X - (DRect.W / 2);
                 DRect.Y = Pos.Y;
             }
@@ -317,16 +358,16 @@ namespace Fabrick.ENGINE.RENDERER
             {
                 DRect.X = Pos.X;
                 DRect.Y = Pos.Y;
-                DRect.W = W * Size / FontRenderQuality;
-                DRect.H = H * Size / FontRenderQuality;
+                DRect.W = W * Size / FontList[DefaultFontName].Renderquality;
+                DRect.H = H * Size / FontList[DefaultFontName].Renderquality;
             }
 
             if (Align == Algin.Right)
             {
                 DRect.X = Pos.X - DRect.W;
                 DRect.Y = Pos.Y;
-                DRect.W = W * Size / FontRenderQuality;
-                DRect.H = H * Size / FontRenderQuality;
+                DRect.W = W * Size / FontList[DefaultFontName].Renderquality;
+                DRect.H = H * Size / FontList[DefaultFontName].Renderquality;
             }
 
             SDL.DestroySurface(textRender);

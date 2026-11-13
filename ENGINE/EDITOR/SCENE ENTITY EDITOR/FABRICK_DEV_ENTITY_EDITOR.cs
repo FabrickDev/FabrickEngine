@@ -60,6 +60,7 @@ namespace Fabrick.ENGINE.EDITOR
                 LIST_WINDOW.SetPos(new Vector2(600, 700));
             }
 
+            // Camera Focus
             if (FABRICK_INPUT.IsKeyPressed(SDL3.SDL.Scancode.F))
             {
                 // Getting Position of Focused Entity

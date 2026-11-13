@@ -400,6 +400,7 @@ namespace Fabrick.ENGINE.SCENE_MANAGER
         }
         public static void SetCurrentScene(string SceneName)
         {
+            FABRICK_DEBUG.Log("[SCENE MANAGER] Set Current Scene: " + SceneName);
             CurrentSceneName = SceneName;
         }
         public static string GetCurrentScene()

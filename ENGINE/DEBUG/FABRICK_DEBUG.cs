@@ -6,6 +6,8 @@
 
 using SDL3;
 using System;
+using System.CodeDom;
+using System.Windows.Markup;
 
 namespace Fabrick.ENGINE.DEBUG
 {
@@ -157,6 +159,66 @@ namespace Fabrick.ENGINE.DEBUG
                 Log(promptText + ": Declined");
             }
             return Result;
+        }
+        public static int DialogueList(string title, string promptText, ref List<string> Values, int CurrentValue = -1)
+        {
+            Form form = new Form();
+            Label label = new Label();
+            Button buttonOk = new Button();
+            Button buttonCancel = new Button();
+            ListBox listbox = new();
+
+            form.Text = title;
+            label.Text = promptText;
+
+            buttonOk.Text = "OK";
+            buttonCancel.Text = "Cancel";
+            buttonOk.DialogResult = DialogResult.OK;
+            buttonCancel.DialogResult = DialogResult.Cancel;
+
+            label.SetBounds(9, 20, 372, 13);
+            listbox.SetBounds(12, 60, 620, 200);
+            buttonOk.SetBounds(228, 300, 75, 23);
+            buttonCancel.SetBounds(309, 300, 120, 23);
+
+            label.AutoSize = true;
+            buttonOk.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            buttonCancel.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+
+            listbox.BeginUpdate();
+            for (int i = 0; i < Values.Count; i++)
+            {
+                listbox.Items.Add(Values[i]);
+            }
+            listbox.EndUpdate();
+            if (CurrentValue > -1)
+            {
+                listbox.SetSelected(CurrentValue, true);
+            }
+
+            form.ClientSize = new Size(640, 360);
+            form.Controls.AddRange(new Control[] { label, listbox, buttonOk, buttonCancel });
+            form.FormBorderStyle = FormBorderStyle.FixedDialog;
+            form.StartPosition = FormStartPosition.CenterScreen;
+            form.MinimizeBox = false;
+            form.MaximizeBox = false;
+            form.AcceptButton = buttonOk;
+            form.CancelButton = buttonCancel;
+
+            int Result = CurrentValue;
+
+            DialogResult dialogResult = form.ShowDialog();
+            if(dialogResult == DialogResult.OK)
+            {
+                Result = listbox.SelectedIndex;
+                Log(promptText + ": Agreed");
+            }
+            else
+            {
+                Log(promptText + ": Declined");
+            }
+            return Result;
+            
         }
         #elif ANDORID
         public static bool DialogueInputText(string title, string promptText, ref string value, bool Multiline = false)

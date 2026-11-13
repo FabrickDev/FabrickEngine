@@ -9,19 +9,21 @@ namespace Fabrick.ENGINE.VISUAL_NOVEL
     public class FABRICK_VISUAL_NOVEL_PORTRAIT_CHAR : FABRICK_ENTITY
     {
         private bool IsMainChar = false;
-        private Dictionary<string, string> Variant = new();
+        public Dictionary<string, string> Variant = new();
         private string CurrentVariantTexture = "";
         private bool isFlipped = false;
         private string FrameTextureName = "";
         private float Visibility = 1f;
         private float PortraitVisibility = 1f;
+        public string DisplayName = "";
 
         private Vector2 FRAMEPos, FRAMESize = new();
-        public FABRICK_VISUAL_NOVEL_PORTRAIT_CHAR(string Name, int Id)
+        public FABRICK_VISUAL_NOVEL_PORTRAIT_CHAR(string Name, bool IsMainChar, int Id)
         {
             this.Category = "VN Portrait";
             this.Name = Name;
             this.Id = Id;
+            this.IsMainChar = IsMainChar;
 
             InitializeAction = Initialize;
             UpdateAction = Update;
@@ -37,6 +39,7 @@ namespace Fabrick.ENGINE.VISUAL_NOVEL
         }
         public virtual void Render()
         {
+            return;
             float _Transparency = 1 - Visibility;
             float _PortraitTransparency = 1 - PortraitVisibility * Visibility;
 
@@ -107,6 +110,10 @@ namespace Fabrick.ENGINE.VISUAL_NOVEL
         public void SetPortraitVisibility(float Visibility)
         {
             this.PortraitVisibility = Visibility;
+        }
+        public bool IsMain()
+        {
+            return IsMainChar;
         }
     }
 }

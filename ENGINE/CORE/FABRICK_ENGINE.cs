@@ -24,14 +24,14 @@ namespace Fabrick.ENGINE.CORE
     public class FABRICK_ENGINE
     {
         // Public
-        public enum Plaftorm
+        public enum Platform
         {
             Windows = 0,
             Android = 1,
             Linux = 2,
             MacOS = 3
         }
-        Plaftorm CurrentPlatform;
+        private Platform CurrentPlatform = Platform.Windows;
     
         // Private
         private bool IsDevMode = false;
@@ -105,16 +105,16 @@ namespace Fabrick.ENGINE.CORE
             switch (SDL.GetPlatform())
             {
                 case "Windows":
-                    CurrentPlatform = Plaftorm.Windows;
+                    CurrentPlatform = Platform.Windows;
                 break;
                 case "Android":
-                    CurrentPlatform = Plaftorm.Android;
+                    CurrentPlatform = Platform.Android;
                 break;
                 case "Linux":
-                    CurrentPlatform = Plaftorm.Linux;
+                    CurrentPlatform = Platform.Linux;
                 break;
                 case "macOS":
-                    CurrentPlatform = Plaftorm.MacOS;
+                    CurrentPlatform = Platform.MacOS;
                 break;
             }
 
@@ -124,6 +124,7 @@ namespace Fabrick.ENGINE.CORE
             MainEngineDataPath = EngineDataPath;
             FABRICK_ENTITY_RWDATA.SetEngineDataPath(MainEngineDataPath);
             FABRICK_SCENE_RWDATA.SetEngineDataPath(MainEngineDataPath);
+            FABRICK_SCENARIO_RWDATA.SetEngineDataPath(MainEngineDataPath);
 
             FABRICK_TEXTURE_MANAGER.Initialize();
             FABRICK_GLOBAL_VARIABLE_MANAGER.Initialize();
@@ -408,6 +409,7 @@ namespace Fabrick.ENGINE.CORE
 
                 // Fullscreen Listener
                 FullscreenShortcut();
+                FABRICK_INPUT.AfterCycleHandle();
 
                 // Deltatime End
                 //FABRICK_DEBUG.Log($"[FABRICK_ENGINE] Deltatime: {DeltaTime}");
@@ -564,6 +566,10 @@ namespace Fabrick.ENGINE.CORE
                 DeltaCount = 0;
             }
             FABRICK_DRAW_TEXT.DrawDevFPS(new Vector2(2, 2), 3, FrameRateUpdateSecond);
+        }
+        public Platform GetCurrentPlatform()
+        {
+            return CurrentPlatform;
         }
     }
 }

@@ -1144,5 +1144,17 @@
         }
       }
     }
-  }
+  },
+  "logs": [
+    {
+      "code": "NU1903",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Package 'Microsoft.DotNet.ILCompiler' 10.0.12 has a known high severity vulnerability, https://github.com/advisories/GHSA-p3jp-9v83-76w9",
+      "libraryId": "Microsoft.DotNet.ILCompiler",
+      "targetGraphs": [
+        "net10.0-windows"
+      ]
+    }
+  ]
 }

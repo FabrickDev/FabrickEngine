@@ -30,8 +30,6 @@ namespace Fabrick.ENGINE.EDITOR.ITEMS
 
         private bool IsActive = false;
 
-        private FABRICK_ENTITY? ThisEntity;
-
         public void Initialize()
         {
             CollisionXAxis = new Box(Vector2.Zero, new Vector2(0, CollisionRange / 2), new Vector2(Length, CollisionRange));
@@ -41,7 +39,6 @@ namespace Fabrick.ENGINE.EDITOR.ITEMS
         public void Update()
         {
             IsActive = false;
-            ThisEntity = null;
 
             if (CollisionXAxis != null && CollisionYAxis != null && CollisionXYAxis != null)
             {

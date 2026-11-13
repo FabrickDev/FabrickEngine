@@ -58,6 +58,7 @@ namespace Fabrick.ENGINE.EDITOR
             
             SCENE_EDITOR_MANAGER.Initialize();
             ENTITY_SCENE_EDITOR_MANAGER.Initialize();
+            FABRICK_DIALOGUE_EDITOR_MANAGER.Initialize();
 
             CurrentOperation = EditorOperation.None;
         }
@@ -80,6 +81,9 @@ namespace Fabrick.ENGINE.EDITOR
                 break;
                 case EditorOperation.SceneEntityEditor:
                     ENTITY_SCENE_EDITOR_MANAGER.Update();
+                break;
+                case EditorOperation.DialogueEditor:
+                    FABRICK_DIALOGUE_EDITOR_MANAGER.Update();
                 break;
             }
             SetChangeAbleFocusWindowBackOnClick();
@@ -120,6 +124,7 @@ namespace Fabrick.ENGINE.EDITOR
         private void ActionTabDialogueEditor()
         {
             FABRICK_DEBUG.Log("[EDITOR_MANAGER] Set Operation to Scene Entity Editor");
+            FABRICK_CAMERA_MANAGER.SetCurrentCamera("@DEV.DIALOGUE_EDITOR");
             FABRICK_SCENE_MANAGER.SetCurrentScene("@DEV.DIALOGUE_EDITOR");
             CurrentOperation = EditorOperation.DialogueEditor;
         }
@@ -157,6 +162,7 @@ namespace Fabrick.ENGINE.EDITOR
             FABRICK_CAMERA SceneEditor_Cam = new FABRICK_CAMERA(Vector2.Zero, MaxWindow, FABRICK_CAMERA_ALIGN.MidCenter);
 
             FABRICK_CAMERA_MANAGER.AssignCamera("@DEV.SCENE_EDITOR", SceneEditor_Cam);
+            FABRICK_CAMERA_MANAGER.AssignCamera("@DEV.DIALOGUE_EDITOR", SceneEditor_Cam);
         }
 
         private Vector2 CamGrabOffset = Vector2.Zero;
@@ -165,7 +171,7 @@ namespace Fabrick.ENGINE.EDITOR
         private void DevCameraControl(float DeltaTime)
         {
             if(CurrentOperation == EditorOperation.None) return;
-            if(!FABRICK_CAMERA_MANAGER.GetCurrentCamera().Contains("@DEV.")) return;
+            if(!FABRICK_CAMERA_MANAGER.GetCurrentCamera().Contains(DevKey)) return;
 
             // Reset Camera
             if (FABRICK_INPUT.IsKeyDown(SDL3.SDL.Scancode.LAlt) && FABRICK_INPUT.IsKeyDown(SDL3.SDL.Scancode.Space))

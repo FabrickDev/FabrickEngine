@@ -109,6 +109,7 @@ namespace Fabrick.ENGINE.RENDERER
             _data.DST = _DST;
 
             FABRICK_TEXTURE_MANAGER.TextureDataList[name] = _data;
+            FABRICK_DEBUG.Log($"[FABRICK_TEXTURE_MANAGER] Assigned Texture: {name}, Directory: {Directory}, Filename: {filename}");
         }
         public static void UnloadTexture(string TextureName)
         {

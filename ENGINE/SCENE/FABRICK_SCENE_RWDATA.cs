@@ -32,12 +32,6 @@ namespace Fabrick.ENGINE.ENTITY
             }
             PT = Path.Combine(PT, FileName + FileExtension);
 
-            var JsonOptions = new JsonSerializerOptions
-            {
-                WriteIndented = true,
-                DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
-            };
-
             FABRICK_DEBUG.Log($"[SCENE_MANAGER] Writing...");
             List<FABRICK_SCENE_RWDATA_STRUCT> L = new List<FABRICK_SCENE_RWDATA_STRUCT>();
 

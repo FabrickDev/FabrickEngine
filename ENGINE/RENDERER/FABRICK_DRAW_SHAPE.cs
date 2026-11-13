@@ -16,9 +16,13 @@ namespace Fabrick.ENGINE.RENDERER
         {
             ThisEngine = Engine;
         }
-        public static void DrawLine(Vector2 Point1, Vector2 Point2, Color color)
+        public static void DrawLine(Vector2 Point1, Vector2 Point2, FABRICK_COLOR Color)
         {
-            
+            if(ThisEngine is not null)
+            {
+                SDL.SetRenderDrawColor(ThisEngine.GetRenderer(), Color.R, Color.G, Color.B, Color.A);
+                SDL.RenderLine(ThisEngine.GetRenderer(), Point1.X, Point1.Y, Point2.X, Point2.Y);
+            }
         }
         public static SDL.FRect MakeRect(int X, int Y, int W, int H)
         {
