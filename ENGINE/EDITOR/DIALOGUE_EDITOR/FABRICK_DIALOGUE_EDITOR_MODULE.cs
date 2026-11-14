@@ -227,7 +227,7 @@ namespace Fabrick.ENGINE.EDITOR.DIALOGUE_EDITOR
         {
             //FABRICK_DEBUG.Log($"[MOUSE]: {FABRICK_INPUT.GetMousePos()} | [POS]: {Pos} | [SIZE]: {MoverSize}");
             Box MoveableArea = new Box(Pos - new Vector2(SizeModule.X / 2, 0), Vector2.Zero, MoverSize);
-            if (FABRICK_COLLISIONS.IntersectCollisionPointBox(FABRICK_INPUT.GetMousePos(), MoveableArea) && FABRICK_INPUT.IsMouseDown(SDL.MouseButtonFlags.Left) && !MoverAreaState)
+            if (FABRICK_INPUT.IsKeyUp(SDL.Scancode.LAlt) && FABRICK_COLLISIONS.IntersectCollisionPointBox(FABRICK_INPUT.GetMousePos(), MoveableArea) && FABRICK_INPUT.IsMouseDown(SDL.MouseButtonFlags.Left) && !MoverAreaState)
             {
                 MoverAreaState = true;
                 MoverAreaOffset = PosDrag - FABRICK_INPUT.GetMousePos();
@@ -324,11 +324,11 @@ namespace Fabrick.ENGINE.EDITOR.DIALOGUE_EDITOR
             // Draw Text
             if (!ChangeIsMainCast)
             {
-                FABRICK_DRAW_TEXT.DrawTextAdvanced("Main Cast", "DefaultFont", _Pos, 2f, EDITOR_MANAGER.Color1, Algin.Left, out _);
+                FABRICK_DRAW_TEXT.DrawTextAdvanced("Main Cast", "DefaultFont", _Pos, 2f, EDITOR_MANAGER.Color1, Algin.Left, out _, 0, 0, true, false, true, "ModuleEditor");
             }
             else
             {
-                FABRICK_DRAW_TEXT.DrawTextAdvanced("Opponent Cast", "DefaultFont", _Pos, 2f, EDITOR_MANAGER.Color1, Algin.Left, out _);
+                FABRICK_DRAW_TEXT.DrawTextAdvanced("Opponent Cast", "DefaultFont", _Pos, 2f, EDITOR_MANAGER.Color1, Algin.Left, out _, 0, 0, true, false, true, "ModuleEditor");
             }
             
             // Name Char
@@ -355,8 +355,8 @@ namespace Fabrick.ENGINE.EDITOR.DIALOGUE_EDITOR
                 }
             }
             
-            FABRICK_DRAW_TEXT.DrawTextAdvanced(ThisCast, "DefaultFont", _Pos2, 2f, EDITOR_MANAGER.Color1, Algin.Left, out _);
-            FABRICK_DRAW_TEXT.DrawTextAdvanced(ThisCastVariant, "DefaultFont", _Pos3, 2f, EDITOR_MANAGER.Color1, Algin.Left, out _);
+            FABRICK_DRAW_TEXT.DrawTextAdvanced(ThisCast, "DefaultFont", _Pos2, 2f, EDITOR_MANAGER.Color1, Algin.Left, out _, 0, 0, true, false, true, "ModuleEditor");
+            FABRICK_DRAW_TEXT.DrawTextAdvanced(ThisCastVariant, "DefaultFont", _Pos3, 2f, EDITOR_MANAGER.Color1, Algin.Left, out _, 0, 0, true, false, true, "ModuleEditor");
             // Input Response
             if(!IsFocushed) return;
             Box box1 = new(_Pos, Vector2.Zero, _Size);
@@ -400,11 +400,11 @@ namespace Fabrick.ENGINE.EDITOR.DIALOGUE_EDITOR
             // Draw Text
             if (ModuleData.DialogueText.Length > 0)
             {
-                FABRICK_DRAW_TEXT.DrawTextAdvanced(ModuleData.DialogueText, "DefaultFont", _Pos, 2f, EDITOR_MANAGER.Color1, Algin.Left, out _, 40);
+                FABRICK_DRAW_TEXT.DrawTextAdvanced(ModuleData.DialogueText, "DefaultFont", _Pos, 2f, EDITOR_MANAGER.Color1, Algin.Left, out _, 40, 0, true, false, true, "ModuleEditor");
             }
             else
             {
-                FABRICK_DRAW_TEXT.DrawTextAdvanced("Enter Dialogue Here...", "DefaultFont", _Pos, 2f, EDITOR_MANAGER.Color1, Algin.Left, out _, 40);
+                FABRICK_DRAW_TEXT.DrawTextAdvanced("Enter Dialogue Here...", "DefaultFont", _Pos, 2f, EDITOR_MANAGER.Color1, Algin.Left, out _, 40, 0, true, false, true, "ModuleEditor");
             }
             // Response
             if(!IsFocushed) return;

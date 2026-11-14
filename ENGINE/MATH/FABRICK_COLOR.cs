@@ -14,12 +14,12 @@ namespace Fabrick.ENGINE.MATH
         }
         public SDL.Color Get_SDL_Color()
         {
-            SDL.Color color;
-            color.R = R;
-            color.G = G;
-            color.B = B;
-            color.A = A;
-            return color;
+            SDL.Color _color = new()
+            {
+                R = this.R, G = this.G,
+                B = this.B, A = this.A
+            };
+            return _color;
         }
         public SDL.FColor Get_SDL_FColor()
         {

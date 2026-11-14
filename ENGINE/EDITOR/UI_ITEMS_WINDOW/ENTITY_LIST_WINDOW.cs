@@ -142,7 +142,7 @@ namespace Fabrick.ENGINE.EDITOR.ITEMS
                                 List[i].Action!();
                             }
                         }
-                        if (FABRICK_INPUT.IsMouseDown(SDL.MouseButtonFlags.Right))
+                        if (FABRICK_INPUT.IsMousePressed(SDL.MouseButtonFlags.Right))
                         {
                             List[i].IsFocused = false;
                         }
@@ -153,7 +153,7 @@ namespace Fabrick.ENGINE.EDITOR.ITEMS
         private void DragHandle()
         {
             Box MoveableArea = new Box(Pos, Vector2.Zero, MoveListArea);
-            if (FABRICK_COLLISIONS.IntersectCollisionPointBox(FABRICK_INPUT.GetMousePos_UI(), MoveableArea) && FABRICK_INPUT.IsMouseDown(SDL.MouseButtonFlags.Left) && !MoveAreaState)
+            if (FABRICK_INPUT.IsKeyUp(SDL.Scancode.LAlt) && FABRICK_COLLISIONS.IntersectCollisionPointBox(FABRICK_INPUT.GetMousePos_UI(), MoveableArea) && FABRICK_INPUT.IsMousePressed(SDL.MouseButtonFlags.Left) && !MoveAreaState)
             {
                 MoveAreaState = true;
                 MoveAreaOffset = PosDrag - FABRICK_INPUT.GetMousePos_UI();

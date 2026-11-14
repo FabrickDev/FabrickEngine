@@ -13,7 +13,7 @@ namespace Fabrick.ENGINE.VISUAL_NOVEL
         private string CurrentVariantTexture = "";
         private bool isFlipped = false;
         private string FrameTextureName = "";
-        private float Visibility = 1f;
+        private float VisibilityFlo = 1f;
         private float PortraitVisibility = 1f;
         public string DisplayName = "";
 
@@ -39,9 +39,8 @@ namespace Fabrick.ENGINE.VISUAL_NOVEL
         }
         public virtual void Render()
         {
-            return;
-            float _Transparency = 1 - Visibility;
-            float _PortraitTransparency = 1 - PortraitVisibility * Visibility;
+            float _Transparency = 1 - VisibilityFlo;
+            float _PortraitTransparency = 1 - PortraitVisibility * VisibilityFlo;
 
             // Render Portrait
             if (!CurrentVariantTexture.IsWhiteSpace())
@@ -105,7 +104,7 @@ namespace Fabrick.ENGINE.VISUAL_NOVEL
         }
         public void SetVisibility(float Visibility)
         {
-            this.Visibility = Visibility;
+            this.VisibilityFlo = Visibility;
         }
         public void SetPortraitVisibility(float Visibility)
         {

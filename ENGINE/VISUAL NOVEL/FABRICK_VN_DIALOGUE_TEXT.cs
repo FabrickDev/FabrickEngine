@@ -21,6 +21,9 @@ namespace Fabrick.ENGINE.VISUAL_NOVEL
         private float StepText = 0;
         private float StepSpeed = 0;
         private int MaxSentenceEachLine = 60;
+        private bool CacheRemoved = true;
+        private string CacheCategory_CastName = "CastName";
+        private string CacheCategory_CastDialogue = "CastDialogue";
 
         public FABRICK_VISUAL_NOVEL_DIALOGUE_TEXT(string Name, int Id)
         {
@@ -42,6 +45,16 @@ namespace Fabrick.ENGINE.VISUAL_NOVEL
         }
         public void Render()
         {
+            if (CacheRemoved && !FABRICK_SCENARIO_MANAGER.VisualNovelRunning)
+            {
+                FABRICK_DRAW_TEXT.RemoveCacheByCategory(CacheCategory_CastName);
+                FABRICK_DRAW_TEXT.RemoveCacheByCategory(CacheCategory_CastDialogue);
+                CacheRemoved = false;
+            }
+            if (FABRICK_SCENARIO_MANAGER.VisualNovelRunning)
+            {
+                CacheRemoved = true;
+            }
             StepText += StepSpeed * DeltaTime;
             StepText = FABRICK_MATH.Clamp(StepText, 0, TestText.Length);
             if (StepText >= TestText.Length)
@@ -57,8 +70,8 @@ namespace Fabrick.ENGINE.VISUAL_NOVEL
                 StepText = 0;
                 FABRICK_SCENARIO_MANAGER.VisualNovelTextNext = true;
             }
-            FABRICK_DRAW_TEXT.DrawTextAdvanced(FABRICK_SCENARIO_MANAGER.VisualNovelCast, "DefaultFont", Transform.GetPosition() + new Vector2(-80, -60), 4, FABRICK_COLOR.Black(), Algin.Left, out _, MaxSentenceEachLine, 0, true, true);
-            FABRICK_DRAW_TEXT.DrawTextEachLetter(FABRICK_SCENARIO_MANAGER.VisualNovelText, (int)StepText, FABRICK_DRAW_TEXT.GetDefaultFontName(), Transform.GetPosition(), TextSize, FABRICK_COLOR.Black(), Algin.Left, out _, MaxSentenceEachLine);
+            FABRICK_DRAW_TEXT.DrawTextAdvanced(FABRICK_SCENARIO_MANAGER.VisualNovelCast, "DefaultFont", Transform.GetPosition() + new Vector2(-80, -60), 4, FABRICK_COLOR.Black(), Algin.Left, out _, MaxSentenceEachLine, 0, true, true, true, CacheCategory_CastName);
+            FABRICK_DRAW_TEXT.DrawTextEachLetter(FABRICK_SCENARIO_MANAGER.VisualNovelText, (int)StepText, FABRICK_DRAW_TEXT.GetDefaultFontName(), Transform.GetPosition(), TextSize, FABRICK_COLOR.Black(), Algin.Left, out _, MaxSentenceEachLine, 0, true, true, CacheCategory_CastDialogue);
         }
         public void SetText(string Text)
         {

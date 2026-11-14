@@ -12,7 +12,7 @@ namespace Fabrick.ENGINE.VISUAL_NOVEL
         public static Dictionary<string, List<SCENARIO_MODULE_DATA>> ScenarioList = new();
         public static Dictionary<string, FABRICK_VISUAL_NOVEL_PORTRAIT_CHAR> PortraitsCastList = new();
         public static string CurrentScenario = "";
-        private static string VisualNovelSceneName = "";
+        internal static string VisualNovelSceneName = "";
         public static string VisualNovelCurrentCast = ""; // Control who speaking
         public static string VisualNovelCurrentCastVariant = "Normal";
         public static string VisualNovelCast = "Narrator"; // This actually just for display

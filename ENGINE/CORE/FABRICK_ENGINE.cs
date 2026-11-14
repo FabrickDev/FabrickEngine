@@ -21,7 +21,7 @@ using Fabrick.ENGINE.VISUAL_NOVEL;
 
 namespace Fabrick.ENGINE.CORE
 {
-    public class FABRICK_ENGINE
+    public partial class FABRICK_ENGINE
     {
         // Public
         public enum Platform
@@ -62,6 +62,7 @@ namespace Fabrick.ENGINE.CORE
         private UInt16 RenderList_I = 0;
         private bool RenderList_Error = false;
 
+        private bool EngineWantToExit = false;
         private bool EngineRunning = true;
         private bool RenderingVSync = false;
         private bool RenderingFullScreen = false;
@@ -85,6 +86,7 @@ namespace Fabrick.ENGINE.CORE
         // Dev Mode
         EDITOR_MANAGER EDITOR_MANAGER = new EDITOR_MANAGER();
         private static int CallCount;
+
 
         public FABRICK_ENGINE()
         {
@@ -164,18 +166,19 @@ namespace Fabrick.ENGINE.CORE
             //     FABRICK_DEBUG.Log("[FABRICK_ENGINE] Vulkan Available, set to Vulkan Driver rn.");
             // }
             
-            // window = SDL.CreateWindow(WindowName, Width, Height, 0);
-            // renderer = SDL.CreateRenderer(window, "direct3d11");
+            FABRICK_DEBUG.Log($"[FABRICK_ENGINE] Using Driver: {SDL.GetVideoDriver}");
+            window = SDL.CreateWindow(WindowName, Width, Height, SDL.WindowFlags.Transparent);
+            renderer = SDL.CreateRenderer(window, null);
+            SDL.SetWindowOpacity(window, 0f);
             // FABRICK_DEBUG.Log($"[FABRICK_ENGINE] Renderer API: {SDL.GetRendererName(renderer)}");
 
-            FABRICK_DEBUG.Log($"[FABRICK_ENGINE] Using Driver: {SDL.GetVideoDriver}");
 
-            if (!SDL.CreateWindowAndRenderer(WindowName, Width, Height, 0, out window, out renderer))
-            {
-               FABRICK_DEBUG.SimpleMessageError($"Error creating window and renderer: {SDL.GetError()}");
-               SDL.LogError(SDL.LogCategory.Application, $"Error creating window and renderer: {SDL.GetError()}");
-               return false;
-            }
+            // if (!SDL.CreateWindowAndRenderer(WindowName, Width, Height, 0, out window, out renderer))
+            // {
+            //    FABRICK_DEBUG.SimpleMessageError($"Error creating window and renderer: {SDL.GetError()}");
+            //    SDL.LogError(SDL.LogCategory.Application, $"Error creating window and renderer: {SDL.GetError()}");
+            //    return false;
+            // }
             // else
             // {
             //    FABRICK_DEBUG.Log($"[FABRICK_ENGINE] Renderer API: {SDL.GetRendererName(renderer)}");
@@ -257,7 +260,8 @@ namespace Fabrick.ENGINE.CORE
                 {
                     if ((SDL.EventType)RunEvent.Type == SDL.EventType.Quit)
                     {
-                        EngineRunning = false;
+                        EngineWantToExit = true;
+                        // The EngineRunning Handled in FABRICK_ENGINE.APPEAR_ANIMATION.cs!!
                     }
                     FABRICK_INPUT.MouseScrollEventHandle(RunEvent);
                 }
@@ -400,6 +404,8 @@ namespace Fabrick.ENGINE.CORE
 
                 // Render Loop
                 DrawFPS();
+                AppearHandle();
+                DisappearHandle();
                 SDL.RenderPresent(renderer);
 
                 SDL.SetRenderDrawColor(renderer, DefaultBackgroundColor.R, DefaultBackgroundColor.G, DefaultBackgroundColor.B, DefaultBackgroundColor.A);
@@ -414,6 +420,7 @@ namespace Fabrick.ENGINE.CORE
                 // Deltatime End
                 //FABRICK_DEBUG.Log($"[FABRICK_ENGINE] Deltatime: {DeltaTime}");
                 //SDL.Delay(1);
+                // Animation Purpose
             }
             Quit();
         }
