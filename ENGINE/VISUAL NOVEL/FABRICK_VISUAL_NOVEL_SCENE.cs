@@ -10,7 +10,6 @@ namespace Fabrick.ENGINE.SCENE_MANAGER
         {
             this.SceneName = SceneName;
             this.IsOverlay = true;
-            this.UpdateCurrentScene = false;
             InitializeAction = Initialize_Func;
             RunningAction = Update_Func;
             RenderAction = Render_Func;

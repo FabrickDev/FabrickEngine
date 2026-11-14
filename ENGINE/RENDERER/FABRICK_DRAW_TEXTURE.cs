@@ -169,7 +169,7 @@ namespace Fabrick.ENGINE.RENDERER
         {
             if (!FABRICK_TEXTURE_MANAGER.TextureDataList.ContainsKey(name))
             {
-                FABRICK_DEBUG.SimpleMessageWarning("Texture " + name + " Doesn't Exist!!");
+                FABRICK_DEBUG.SimpleMessageWarning("[FABRICK_DRAW_TEXTURE] Texture " + name + " Doesn't Exist!!");
                 return false;
             }
 

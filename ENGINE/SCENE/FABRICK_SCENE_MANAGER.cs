@@ -6,6 +6,8 @@ namespace Fabrick.ENGINE.SCENE_MANAGER
     public class FABRICK_SCENE_MANAGER
     {
         public static string CurrentSceneName = "";
+        private static string LastSceneName = "";
+        private static bool InitializedScene = false;
         private static bool IsPauseAllAcene = false;
         private static bool IsPauseAllOverlayScene = false;
         private static bool IsPauseAllAceneOnceUpdate = true;
@@ -166,8 +168,26 @@ namespace Fabrick.ENGINE.SCENE_MANAGER
                 FABRICK_DEBUG.SimpleMessageError($"[SCENE_MANAGER][RunScene] Try to run this Scene: {Name} didn't exist!");
                 return;
             }
+            // Trigger Current Scene to Leave
+            if (SceneList.ContainsKey(LastSceneName) && LastSceneName != Name)
+            {
+                FABRICK_DEBUG.SimpleMessageWarning($"Leaving Scene... Last Scene: {LastSceneName}");
+                SceneList[CurrentSceneName].Leave();
+                SceneList[CurrentSceneName].IsRunning = false;
+                LastSceneName = Name;
+                FABRICK_DEBUG.SimpleMessageWarning("Initializing Scene");
+                SceneList[Name].Initialize();
+            }
+            // Trigger First Scene to Initialize
+            if (!InitializedScene)
+            {
+                FABRICK_DEBUG.SimpleMessageWarning("Initializing First Scene");
+                SceneList[Name].Initialize();
+                InitializedScene = true;
+            }
+
+            CurrentSceneName = Name;
             SceneList[Name].IsRunning = true;
-            SceneList[Name].OnLeave = true;
             if (!IsPauseAllAcene || IsPauseAllAceneOnceUpdate)
             {
                 UpdateScene(Name);
@@ -192,7 +212,6 @@ namespace Fabrick.ENGINE.SCENE_MANAGER
             }
 
             OverlaySceneList[Name].IsRunning = true;
-            OverlaySceneList[Name].OnLeave = true;
             if (!IsPauseAllOverlayScene || IsPauseAllOverlaySceneOnceUpdate)
             {
                 UpdateOverlayScene(Name);
@@ -235,7 +254,8 @@ namespace Fabrick.ENGINE.SCENE_MANAGER
             {
                 return;
             }
-            RunScene(GetCurrentScene());
+            RunScene(CurrentSceneName);
+            //FABRICK_DEBUG.Log($"[FABRICK_SCENE_MANAGER] Updating: {GetCurrentScene()}");
 
             // Skip if Overlay Scene Null
             if (OverlaySceneList.Count == 0 || OverlaySceneRunList.Count == 0)
@@ -276,9 +296,14 @@ namespace Fabrick.ENGINE.SCENE_MANAGER
         }
         public static void RenderAllScene()
         {
-            if (SceneList.ContainsKey(GetCurrentScene()))
+            if (SceneList.ContainsKey(CurrentSceneName) && SceneList[CurrentSceneName].IsRunning)
             {
-                SceneList[GetCurrentScene()].Render();
+                SceneList[CurrentSceneName].Render();
+                //FABRICK_DEBUG.Log($"[FABRICK_SCENE_MANAGER] Rendering: {GetCurrentScene()}");
+            }
+            else
+            {
+                //FABRICK_DEBUG.Log($"[FABRICK_SCENE_MANAGER] Cannot Find to Render: {GetCurrentScene()}");
             }
             foreach (string ThisScene in OverlaySceneRunList)
             {
@@ -318,7 +343,7 @@ namespace Fabrick.ENGINE.SCENE_MANAGER
                 FABRICK_DEBUG.SimpleMessageWarning($"[SCENE_MANAGER] Try to restart this Scene: {Name} already didn't exist!");
                 return;
             }
-            SceneList[Name].RestartScene();
+            //SceneList[Name].RestartScene();
         }
         public static void RestartOverlayScene(string Name)
         {
@@ -327,7 +352,7 @@ namespace Fabrick.ENGINE.SCENE_MANAGER
                 FABRICK_DEBUG.SimpleMessageWarning($"[SCENE_MANAGER] Try to restart this Overlay Scene: {Name} already didn't exist!");
                 return;
             }
-            OverlaySceneList[Name].RestartScene();
+            //OverlaySceneList[Name].RestartScene();
         }
         public static void RemoveScene(string Name)
         {
@@ -369,38 +394,39 @@ namespace Fabrick.ENGINE.SCENE_MANAGER
             {
                 return;
             }
-            foreach (string ThisKey in SceneList.Keys.ToList())
-            {
-                SceneList[ThisKey].OnLeave = false;
-            }
+            // foreach (string ThisKey in SceneList.Keys.ToList())
+            // {
+            //     SceneList[ThisKey].OnLeave = false;
+            // }
 
             if (OverlaySceneList.Count == 0)
             {
                 return;
             }
-            foreach (string ThisKey in OverlaySceneList.Keys.ToList())
-            {
-                OverlaySceneList[ThisKey].OnLeave = false;
-            }
+            // foreach (string ThisKey in OverlaySceneList.Keys.ToList())
+            // {
+            //     OverlaySceneList[ThisKey].OnLeave = false;
+            // }
         }
-        public static void LeaveSceneHandle()
-        {
-            if (SceneList.Count == 0)
-            {
-                return;
-            }
-            foreach (var ThisKey in SceneList.Keys.ToList())
-            {
-                if (SceneList[ThisKey].IsRunning && !SceneList[ThisKey].OnLeave)
-                {
-                    SceneList[ThisKey].RestartScene();
-                    SceneList[ThisKey].Leave();
-                }
-            }
-        }
+        // public static void LeaveSceneHandle()
+        // {
+        //     if (SceneList.Count == 0)
+        //     {
+        //         return;
+        //     }
+        //     foreach (var ThisKey in SceneList.Keys.ToList())
+        //     {
+        //         if (SceneList[ThisKey].IsRunning && !SceneList[ThisKey].OnLeave)
+        //         {
+        //             SceneList[ThisKey].RestartScene();
+        //             SceneList[ThisKey].Leave();
+        //         }
+        //     }
+        // }
         public static void SetCurrentScene(string SceneName)
         {
             FABRICK_DEBUG.Log("[SCENE MANAGER] Set Current Scene: " + SceneName);
+            LastSceneName = CurrentSceneName;
             CurrentSceneName = SceneName;
         }
         public static string GetCurrentScene()

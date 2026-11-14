@@ -17,6 +17,7 @@ namespace Fabrick.ENGINE.SCENE_MANAGER
         {
             if (FABRICK_ENTITY_RWDATA.ReadEntityData(SceneName))
             {
+                FABRICK_DEBUG.Log($"[FABRICK_SCENE : {SceneName}] Initializing All Entity");
                 FABRICK_ENTITY_MANAGER.InitializeAllEntity();
             }
             FABRICK_DEBUG.Log($"[FABRICK_SCENE : {SceneName}] Current Entity Order: {FABRICK_ENTITY_MANAGER.EntityOrder}");
@@ -32,10 +33,9 @@ namespace Fabrick.ENGINE.SCENE_MANAGER
         public void Leave_Func()
         {
             FABRICK_DEBUG.Log("[FABRICK_SCENE] Leaving scene: " + this.SceneName);
-            FABRICK_ENTITY_MANAGER.RemoveAllEntityList();
-            FABRICK_SCENE_MANAGER.InitializeScene(FABRICK_SCENE_MANAGER.GetCurrentScene());
-            FABRICK_SCENE_MANAGER.RunScene(FABRICK_SCENE_MANAGER.GetCurrentScene());
-            FABRICK_SCENE_MANAGER.UpdateScene(FABRICK_SCENE_MANAGER.GetCurrentScene());
+            //FABRICK_SCENE_MANAGER.InitializeScene(FABRICK_SCENE_MANAGER.GetCurrentScene());
+            //FABRICK_SCENE_MANAGER.RunScene(FABRICK_SCENE_MANAGER.GetCurrentScene());
+            //FABRICK_SCENE_MANAGER.UpdateScene(FABRICK_SCENE_MANAGER.GetCurrentScene());
         }
         public void Render_Func()
         {

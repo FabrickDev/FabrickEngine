@@ -61,7 +61,7 @@ namespace Fabrick.ENGINE.RENDERER
         {
             if (TextureDataList.ContainsKey(name))
             {
-                FABRICK_DEBUG.Log($"[FABRICK_TEXTURE_MANAGER] Error cannot add texture name: {name} cus it already exist!!");
+                FABRICK_DEBUG.Log($"[FABRICK_TEXTURE_MANAGER] Cannot add texture name: {name} cus it already exist!!");
                 return;
             }
             string PT = "";

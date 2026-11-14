@@ -87,12 +87,20 @@ namespace Fabrick.ENGINE.ENTITY
         public static void RemoveAllEntityList()
         {
             FABRICK_DEBUG.Log("[ENTITY_MANAGER] Remove All Normal Entity List...");
+            foreach (FABRICK_ENTITY ThisEntity in ENTITY_LIST)
+            {
+                ThisEntity.SPRITE_DestroyAllTexture();
+            }
             ENTITY_LIST.Clear();
         }
         public static void RemoveCompleteAllEntityList()
         {
             RemoveAllEntityList();
             FABRICK_DEBUG.Log("[ENTITY_MANAGER] Remove All Unremovable Entity List...");
+            foreach (FABRICK_ENTITY ThisEntity in UNREMOVABLE_ENTITY_LIST)
+            {
+                ThisEntity.SPRITE_DestroyAllTexture();
+            }
             UNREMOVABLE_ENTITY_LIST.Clear();
         }
         public static void InitializeAllEntity()

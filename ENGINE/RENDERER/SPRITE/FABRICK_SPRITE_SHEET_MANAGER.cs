@@ -49,6 +49,11 @@ namespace Fabrick.ENGINE.RENDERER
             InUse = true;
         }
     }
+    public class SPRITE_COOR_DATA
+    {
+        public Vector2 Pos = Vector2.Zero;
+        public Vector2 Size = Vector2.Zero;
+    }
     public class SPRITE_SHEET_MANAGER
     {
         internal static float DeltaTime = 0;
@@ -63,7 +68,7 @@ namespace Fabrick.ENGINE.RENDERER
         }
         public static string GetSpriteTextureName(string Name, string Category)
         {
-            if (!FABRICK_TEXTURE_MANAGER.TextureDataList.ContainsKey(SPRITE_SHEET_CATEGORY + Name))
+            if (!FABRICK_TEXTURE_MANAGER.TextureDataList.ContainsKey(SPRITE_SHEET_CATEGORY + Category + "." + Name))
             {
                 FABRICK_DEBUG.Log($"[SPRITE_SHEET_MANAGER] Cannot find Sprite named: {Name}");
                 return "";
@@ -87,7 +92,25 @@ namespace Fabrick.ENGINE.RENDERER
             S.SRC.H = SourceSize.Y;
             S.TextureName = TexSprite;
 
+            if (SpriteSheetList.ContainsKey(Category + "." + SpriteSheetName))
+            {
+                FABRICK_DEBUG.Log($"[SPRITE_SHEET_MANAGER] Cannot Create Sprite Already Exist Sheet: {SpriteSheetName}, Category: {Category}");
+                return;
+            }
             SpriteSheetList.Add(Category + "." + SpriteSheetName, S);
+            FABRICK_DEBUG.Log($"[SPRITE_SHEET_MANAGER] Created Sprite Sheet: {SpriteSheetName}, Category: {Category}, TextureName: {TextureName}");
+        }
+        public static string GetSpriteSheetNameBySheetName(string SheetName, string Category)
+        {
+            string thisName = "";
+            foreach (string ThisKey in SpriteSheetList.Keys)
+            {
+                if (ThisKey == Category + "." + SheetName)
+                {
+                    thisName = SpriteSheetList[ThisKey].TextureName;
+                }
+            }
+            return thisName;
         }
 
         // Transform must contain: {Position, Angle, Size, CenterPoint}

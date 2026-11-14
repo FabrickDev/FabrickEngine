@@ -83,14 +83,9 @@ namespace Fabrick.ENGINE.EDITOR
                 FABRICK_DEBUG.Log("[FABRICK_DIALOGUE_EDITOR] VN Scene: " + FABRICK_SCENARIO_MANAGER.VisualNovelSceneName);
                 if (FABRICK_SCENE_MANAGER.OverlaySceneList.ContainsKey(FABRICK_SCENARIO_MANAGER.VisualNovelSceneName))
                 {
-                    FABRICK_DEBUG.Log("[FABRICK_DIALOGUE_EDITOR] Found");
-                    if (FABRICK_SCENE_MANAGER.OverlaySceneList[FABRICK_SCENARIO_MANAGER.VisualNovelSceneName].InitializeState < 1)
-                    {
-                        FABRICK_DEBUG.Log("[FABRICK_DIALOGUE_EDITOR] Initialze State < 1");
-                        FABRICK_SCENE_MANAGER.OverlaySceneList[FABRICK_SCENARIO_MANAGER.VisualNovelSceneName].InitializeState++;
-                        FABRICK_SCENE_MANAGER.OverlaySceneList[FABRICK_SCENARIO_MANAGER.VisualNovelSceneName].Initialize();
-                    }
+                    FABRICK_SCENE_MANAGER.OverlaySceneList[FABRICK_SCENARIO_MANAGER.VisualNovelSceneName].Initialize();
                 }
+                
                 FABRICK_DEBUG.Log("[FABRICK_DIALOGUE_EDITOR] Set Current Scenario Editing to: " + ScenarioName);
                 CurrentScenarioEditing = ScenarioName;
                 // Clear First

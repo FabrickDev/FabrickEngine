@@ -89,8 +89,8 @@ namespace Fabrick.ENGINE.EDITOR
             {
                 EDITOR_MANAGER.LastSceneUsed = SceneName;
                 FABRICK_SCENE_MANAGER.SetCurrentScene(SceneName);
-                FABRICK_SCENE_MANAGER.RunScene(SceneName);
-                FABRICK_SCENE_MANAGER.UpdateScene(SceneName);
+                // FABRICK_SCENE_MANAGER.RunScene(SceneName);
+                // FABRICK_SCENE_MANAGER.UpdateScene(SceneName);
             }
         }
     }

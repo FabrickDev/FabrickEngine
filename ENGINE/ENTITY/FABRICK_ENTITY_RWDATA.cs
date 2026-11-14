@@ -104,6 +104,7 @@ namespace Fabrick.ENGINE.ENTITY
                 FABRICK_DEBUG.Log($"[FABRICK_ENTITY_RWDATA] Read Entity Data, Name: {I[i].Name}");
                 if (I[i].Unremovable) //Bagaimana ngecek kalau sudah ada di memory biar enggak Assign lagi?
                 {
+                    bool Adding = true;
                     foreach (FABRICK_ENTITY ThisEntity in FABRICK_ENTITY_MANAGER.UNREMOVABLE_ENTITY_LIST)
                     {
                         FABRICK_ENTITY_MANAGER.UnremovableEntityOrder = Math.Max(FABRICK_ENTITY_MANAGER.UnremovableEntityOrder, I[i].EntityOrder + 1);
@@ -115,15 +116,18 @@ namespace Fabrick.ENGINE.ENTITY
                         {
                             //This Entity Order Already in Unremovable!! Then shouldnt be add again
                             FABRICK_DEBUG.Log($"[FABRICK_ENTITY_RWDATA] This Entity Order already on the Unremovable List!! : {ThisEntity.EntityOrder}, {ThisEntity.Name}, {ThisEntity.Id}");
-                            return false;
+                            Adding = false;
                         }
                     }
-                    int U = I[i].EntityOrder;
+                    if (Adding)
+                    {
+                        int U = I[i].EntityOrder;
 
-                    FABRICK_ENTITY_MANAGER.AssignEntityList(I[i].Name, I[i].Id, I[i].Category, I[i].EntityOrder, true);
-                    FABRICK_ENTITY_MANAGER.UNREMOVABLE_ENTITY_LIST[U].Transform.SetPosition(new System.Numerics.Vector2(I[i].PosX, I[i].PosY));
-                    FABRICK_ENTITY_MANAGER.UNREMOVABLE_ENTITY_LIST[U].Transform.SetSize(new System.Numerics.Vector2(I[i].SizeX, I[i].SizeY));
-                    FABRICK_ENTITY_MANAGER.UNREMOVABLE_ENTITY_LIST[U].Transform.SetAngle(I[i].Angle);
+                        FABRICK_ENTITY_MANAGER.AssignEntityList(I[i].Name, I[i].Id, I[i].Category, I[i].EntityOrder, true);
+                        FABRICK_ENTITY_MANAGER.UNREMOVABLE_ENTITY_LIST[U].Transform.SetPosition(new System.Numerics.Vector2(I[i].PosX, I[i].PosY));
+                        FABRICK_ENTITY_MANAGER.UNREMOVABLE_ENTITY_LIST[U].Transform.SetSize(new System.Numerics.Vector2(I[i].SizeX, I[i].SizeY));
+                        FABRICK_ENTITY_MANAGER.UNREMOVABLE_ENTITY_LIST[U].Transform.SetAngle(I[i].Angle);
+                    }
                 }
                 else
                 {
@@ -138,7 +142,7 @@ namespace Fabrick.ENGINE.ENTITY
                         {
                             //This Entity Order Already in Normal List!! Then shouldnt be add again
                             FABRICK_DEBUG.Log($"[ENTITY MANAGER] This Entity Order already on the Normal List!! : {ThisEntity.EntityOrder}");
-                            return false;
+                            continue;
                         }
                     }
                     if(I[i].Name is not null && I[i].Category is not null)

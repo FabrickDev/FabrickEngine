@@ -8,6 +8,7 @@ namespace Fabrick.ENGINE.RENDERER
 {
     public partial class FABRICK_DRAW_TEXT
     {
+        internal static string DevTextTagCache = "Dev@";
         public static void DrawTextEachLetter(string Text, int Step, string FontName, Vector2 Pos, float Size, FABRICK_COLOR Color, Algin Align, out Vector2 BoundSize, int MaxSentenceEachLine = 0, int ExtraPaddingEachLine = 0, bool IsUI = true, bool Optimize = true, string CustomCacheCategory = "")
         {
             BoundSize = Vector2.Zero;
@@ -263,7 +264,7 @@ namespace Fabrick.ENGINE.RENDERER
             }
             CacheTextSetting _Setting = new()
             {
-                Text = "Dev@" + Text,
+                Text = DevTextTagCache + Text,
                 FontName = DefaultFontName,
                 Size = Size,
                 Color = Color
@@ -367,10 +368,10 @@ namespace Fabrick.ENGINE.RENDERER
         public static Vector2 GetSizeDrawDevText_UI(string Text, float Size, Algin Align)
         {
             Vector2 _Size;
-            DrawDevText_UI(Text, Vector2.Zero, Size, new FABRICK_COLOR(0, 0, 0, 0), Align, out _Size, false, true);
+            DrawDevText_UI(Text, Vector2.Zero, Size, new FABRICK_COLOR(0, 0, 0, 0), Align, out _Size, false, false);
             return _Size;
         }
-        public static void DrawDevText_UI(string Text, Vector2 Pos, float Size, FABRICK_COLOR Color, Algin Align, out Vector2 SizeBound, bool Render = true, bool Optimize = false)
+        public static void DrawDevText_UI(string Text, Vector2 Pos, float Size, FABRICK_COLOR Color, Algin Align, out Vector2 SizeBound, bool Render = true, bool Optimize = true)
         {
             if(ThisEngine is null)
             {
@@ -381,7 +382,7 @@ namespace Fabrick.ENGINE.RENDERER
 
             CacheTextSetting _Setting = new()
             {
-                Text = "UIDev@" + Text,
+                Text = DevTextTagCache + Text,
                 FontName = DefaultFontName,
                 Size = Size,
                 Color = Color
@@ -455,17 +456,20 @@ namespace Fabrick.ENGINE.RENDERER
                 }
                 
                 SizeBound = new Vector2(DRect.W, DRect.H);
-                if(!Optimize) 
+                if(Optimize == false) 
                 {
                     SDL.DestroyTexture(textTexture);
                     return;
                 }
-                TextTextureCacheList[CacheConvertFormat(_Setting)] = new()
+                else
                 {
-                    Texture = textTexture,
-                    H = DRect.H,
-                    W = DRect.W
-                };
+                    TextTextureCacheList[CacheConvertFormat(_Setting)] = new()
+                    {
+                        Texture = textTexture,
+                        H = DRect.H,
+                        W = DRect.W
+                    };
+                }
             }
         }
         public static void DrawDevFPS(Vector2 Pos, float FontSize, int FPS)

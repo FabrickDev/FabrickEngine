@@ -32,11 +32,6 @@ namespace Fabrick.ENGINE.CORE
             MacOS = 3
         }
         private Platform CurrentPlatform = Platform.Windows;
-    
-        // Private
-        private bool IsDevMode = false;
-        private bool LeavingDevMode = true;
-        private bool IsEditorMode = false;
 
         private nint window;
         private nint renderer;
@@ -293,7 +288,7 @@ namespace Fabrick.ENGINE.CORE
                         }
                     }
                     FABRICK_ENTITY_MANAGER.InitializeAllEntity();
-                    FABRICK_ENTITY_MANAGER.UpdateAllEntity(this);
+                    //FABRICK_ENTITY_MANAGER.UpdateAllEntity(this);
                     if(FunctionInitializeList_Error == false)
                     {
                         // Run Functions Initialize
@@ -330,70 +325,18 @@ namespace Fabrick.ENGINE.CORE
                         if(FunctionUpdateList != null) FunctionUpdateList[i]();
                     }
                 }
-
-                // ========================== Render Phase ========================== //
-                // Check if Render Order Available
-                if (!RenderList_Error && (RenderList == null || !RenderList.Any()))
-                {
-                    RenderList_Error = true;
-                    if (IsDevMode)
-                    {
-                        FABRICK_DEBUG.SimpleMessageError("[FABRICK_ENGINE] Nothing to Render?!");
-                    }
-                }
                 
                 if(RenderList_Error == false)
                 {
                     // Run Functions Update
-                    for (UInt16 i = 0; i < RenderList_I; i++)
+                    for (int i = 0; i < RenderList_I; i++)
                     {
                         if(RenderList != null) RenderList[i]();
                     }
                 }
 
                 // DevEditor Listener
-                if (IsDevMode)
-                {
-                    if (FABRICK_INPUT.IsKeyPressed(SDL.Scancode.F1))
-                    {
-                        IsEditorMode = !IsEditorMode;
-                        if (IsEditorMode)
-                        {
-                            // Devmode On
-                            if (LeavingDevMode)
-                            {
-                                EDITOR_MANAGER.LastSceneUsed = FABRICK_SCENE_MANAGER.GetCurrentScene();
-                                LeavingDevMode = false;
-                            }
-                            EDITOR_MANAGER.LastEngineCamera = FABRICK_CAMERA_MANAGER.GetCurrentCamera();
-                            if (EDITOR_MANAGER.LastEditorCamera != "@DEV.CAMNULL")
-                            {
-                                FABRICK_CAMERA_MANAGER.SetCurrentCamera(EDITOR_MANAGER.LastEditorCamera);
-                            }
-                            FABRICK_DEBUG.Log("[FABRICK_ENGINE] Editor Mode: On");
-                        }
-                        else
-                        {
-                            // Devmode Off
-                            if (!LeavingDevMode)
-                            {
-                                if (FABRICK_SCENE_MANAGER.GetCurrentScene() != EDITOR_MANAGER.LastSceneUsed)
-                                {
-                                    FABRICK_SCENE_MANAGER.SetCurrentScene(EDITOR_MANAGER.LastSceneUsed);
-                                }
-                                LeavingDevMode = true;
-                            }
-                            EDITOR_MANAGER.LastEditorCamera = FABRICK_CAMERA_MANAGER.GetCurrentCamera();
-                            FABRICK_CAMERA_MANAGER.SetCurrentCamera(EDITOR_MANAGER.LastEngineCamera);
-                            FABRICK_DEBUG.Log("[FABRICK_ENGINE] Editor Mode: Off");
-                        }
-                    }
-                }
-                // Developer Component Update
-                if (IsEditorMode)
-                {
-                    DeveloperEditorComponentUpdate();
-                }
+                DevEditorListener();
 
                 // Loop After Update
                 FABRICK_ANIMATION_FRAME_PLAY.Update();
@@ -470,16 +413,13 @@ namespace Fabrick.ENGINE.CORE
             // Camera Update
             FABRICK_CAMERA_MANAGER.Update(this);
             // Scenemanager Update State Handle
-            FABRICK_SCENE_MANAGER.LeaveSceneHandle();
+            //FABRICK_SCENE_MANAGER.LeaveSceneHandle();
             FABRICK_SCENE_MANAGER.UpdateRunningState();
             FABRICK_SCENE_MANAGER.PauseAllScene(IsEditorMode);
             FABRICK_SCENE_MANAGER.UpdateAllScene(this);
             FABRICK_SCENE_MANAGER.RenderAllScene();
         }
-        private void DeveloperEditorComponentUpdate()
-        {
-            EDITOR_MANAGER.Update((float)DeltaTime);
-        }
+        
         private void FullscreenShortcut()
         {
             if (FABRICK_INPUT.IsKeyPressed(FABRICK_GLOBAL_VARIABLE_MANAGER.GlobalVariableDataList["Engine.FullscreenKey"].variableValue_KEYBOARD))
