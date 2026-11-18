@@ -132,7 +132,7 @@ namespace Fabrick.ENGINE.EDITOR.ITEMS
                 // OnClick Handle
                 if (IsFocused && !MoveAreaState)
                 {
-                    Box _B = new Box(_Pos, _Pos, _Size);
+                    Box _B = new Box(_Pos, Vector2.Zero, _Size);
                     if (FABRICK_COLLISIONS.IntersectCollisionPointBox(FABRICK_INPUT.GetMousePos_UI(), _B))
                     {
                         if(FABRICK_INPUT.IsMousePressed(SDL.MouseButtonFlags.Left))
@@ -179,8 +179,7 @@ namespace Fabrick.ENGINE.EDITOR.ITEMS
         public string OnFocusClick()
         {
             string name = EDITOR_MANAGER.FocusWindow;
-            if (FABRICK_INPUT.IsMouseDown(SDL.MouseButtonFlags.Left)
-                && FABRICK_COLLISIONS.IntersectCollisionPointBox(FABRICK_INPUT.GetMousePos_UI(), GetWindowBox())
+            if (FABRICK_COLLISIONS.MouseClickToBox_Pressed(GetWindowBox(), SDL.MouseButtonFlags.Left, true)
                 && EDITOR_MANAGER.FocusWindow != WindowName
                 && EDITOR_MANAGER.ChangeableFocusWindow)
             {

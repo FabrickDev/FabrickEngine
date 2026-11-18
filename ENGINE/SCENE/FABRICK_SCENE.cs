@@ -8,12 +8,8 @@ namespace Fabrick.ENGINE.SCENE_MANAGER
         public FABRICK_SCENE(string SceneName)
         {
             this.SceneName = SceneName;
-            InitializeAction = Initialize_Func;
-            RunningAction = Update_Func;
-            RenderAction = Render_Func;
-            LeaveAction = Leave_Func;
         }
-        public void Initialize_Func()
+        public override void Initialize()
         {
             if (FABRICK_ENTITY_RWDATA.ReadEntityData(SceneName))
             {
@@ -23,21 +19,21 @@ namespace Fabrick.ENGINE.SCENE_MANAGER
             FABRICK_DEBUG.Log($"[FABRICK_SCENE : {SceneName}] Current Entity Order: {FABRICK_ENTITY_MANAGER.EntityOrder}");
             FABRICK_DEBUG.Log($"[FABRICK_SCENE : {SceneName}] Current Unremovable Entity Order: {FABRICK_ENTITY_MANAGER.UnremovableEntityOrder}");
         }
-        public void Update_Func()
+        public override void Update()
         {
             if(Engine is not null)
             {
                 FABRICK_ENTITY_MANAGER.UpdateAllEntity(Engine);
             }
         }
-        public void Leave_Func()
+        public override void Leave()
         {
             FABRICK_DEBUG.Log("[FABRICK_SCENE] Leaving scene: " + this.SceneName);
             //FABRICK_SCENE_MANAGER.InitializeScene(FABRICK_SCENE_MANAGER.GetCurrentScene());
             //FABRICK_SCENE_MANAGER.RunScene(FABRICK_SCENE_MANAGER.GetCurrentScene());
             //FABRICK_SCENE_MANAGER.UpdateScene(FABRICK_SCENE_MANAGER.GetCurrentScene());
         }
-        public void Render_Func()
+        public override void Render()
         {
             FABRICK_ENTITY_MANAGER.RenderAllEntity();
         }

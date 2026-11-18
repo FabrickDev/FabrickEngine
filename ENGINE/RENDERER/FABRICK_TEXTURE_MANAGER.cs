@@ -38,7 +38,7 @@ namespace Fabrick.ENGINE.RENDERER
 
         internal static void Initialize()
         {
-            List<string> _temp = FABRICK_IOFILES_MANAGER.GetFiles("Image");
+            List<string> _temp = FABRICK_IOFILES_MANAGER.GetFiles(TextureDefaultDirectory);
             foreach (string ThisFile in _temp)
             {
                 TextureAssetsData _texass = new();
@@ -68,7 +68,7 @@ namespace Fabrick.ENGINE.RENDERER
             filename = filename + "." + FileFormat;
             if (EnginePath)
             {
-                PT = Path.Combine(EngineDataPath, TextureDefaultDirectory, Directory, filename);
+                PT = Path.Combine(ThisAssetsPath, TextureDefaultDirectory, Directory, filename);
             }
             else
             {
@@ -108,7 +108,7 @@ namespace Fabrick.ENGINE.RENDERER
             _data.SRC = _SRC;
             _data.DST = _DST;
 
-            FABRICK_TEXTURE_MANAGER.TextureDataList[name] = _data;
+            TextureDataList[name] = _data;
             FABRICK_DEBUG.Log($"[FABRICK_TEXTURE_MANAGER] Assigned Texture: {name}, Directory: {Directory}, Filename: {filename}");
         }
         public static void UnloadTexture(string TextureName)

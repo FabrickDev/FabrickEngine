@@ -15,10 +15,6 @@ namespace Fabrick.ENGINE.EDITOR
         internal LIST_WINDOW LIST_WINDOW = new();
         private static List<MENU_ITEM_ENTITY> ScenarioList = new List<MENU_ITEM_ENTITY>();
         public bool IsRun = true;
-        internal static string CurrentScenarioEditing = "";
-        internal static List<FABRICK_DIALOGUE_EDITOR_MODULE_ITEM> DialogueModuleList = new();
-        internal static string ModuleWantToConnect = "";
-        internal static float PinLineWidth = 3f;
 
         public void Initialize()
         {
@@ -30,9 +26,9 @@ namespace Fabrick.ENGINE.EDITOR
             if (IsRun)
             {
                 // Cancel Module Pin Connect 
-                if (ModuleWantToConnect.Length > 0 && FABRICK_INPUT.IsKeyDown(SDL.Scancode.Escape))
+                if (FABRICK_DIALOGUE_EDITOR_MANAGER.ModuleWantToConnect.Length > 0 && FABRICK_INPUT.IsKeyDown(SDL.Scancode.Escape))
                 {
-                    ModuleWantToConnect = "";
+                    FABRICK_DIALOGUE_EDITOR_MANAGER.ModuleWantToConnect = "";
                 }
                 LIST_WINDOW.Update(ScenarioList);
                 EDITOR_MANAGER.SetFocusWindow(LIST_WINDOW.OnFocusClick());
@@ -69,7 +65,7 @@ namespace Fabrick.ENGINE.EDITOR
             foreach (MENU_ITEM_ENTITY ThisKey in ScenarioList)
             {
                 ScenarioList[ScenarioList.IndexOf(ThisKey)].IsFocused = false;
-                if (ScenarioList[ScenarioList.IndexOf(ThisKey)].Name == CurrentScenarioEditing)
+                if (ScenarioList[ScenarioList.IndexOf(ThisKey)].Name == FABRICK_DIALOGUE_EDITOR_MANAGER.CurrentScenarioEditing)
                 {
                     ScenarioList[ScenarioList.IndexOf(ThisKey)].IsFocused = true;
                 }
@@ -78,21 +74,21 @@ namespace Fabrick.ENGINE.EDITOR
 
         private void ActionOnClick(string ScenarioName)
         {
-            if (CurrentScenarioEditing != ScenarioName)
+            if (FABRICK_DIALOGUE_EDITOR_MANAGER.CurrentScenarioEditing != ScenarioName)
             {
                 FABRICK_DEBUG.Log("[FABRICK_DIALOGUE_EDITOR] VN Scene: " + FABRICK_SCENARIO_MANAGER.VisualNovelSceneName);
-                if (FABRICK_SCENE_MANAGER.OverlaySceneList.ContainsKey(FABRICK_SCENARIO_MANAGER.VisualNovelSceneName))
+                if (FABRICK_SCENE_MANAGER.OverlaySceneList.ContainsKey(FABRICK_SCENARIO_MANAGER.VisualNovelSceneName) && FABRICK_SCENE_MANAGER.OverlaySceneList[FABRICK_SCENARIO_MANAGER.VisualNovelSceneName].Initialized == false)
                 {
-                    FABRICK_SCENE_MANAGER.OverlaySceneList[FABRICK_SCENARIO_MANAGER.VisualNovelSceneName].Initialize();
+                    FABRICK_SCENE_MANAGER.OverlaySceneList[FABRICK_SCENARIO_MANAGER.VisualNovelSceneName].SceneInitialize();
                 }
                 
                 FABRICK_DEBUG.Log("[FABRICK_DIALOGUE_EDITOR] Set Current Scenario Editing to: " + ScenarioName);
-                CurrentScenarioEditing = ScenarioName;
+                FABRICK_DIALOGUE_EDITOR_MANAGER.CurrentScenarioEditing = ScenarioName;
                 // Clear First
-                DialogueModuleList.Clear();
+                FABRICK_DIALOGUE_EDITOR_MANAGER.DialogueModuleList.Clear();
                 // Replace All ModuleList
-                string[] ThisScenario = CurrentScenarioEditing.Split("@");
-                FABRICK_SCENARIO_RWDATA.Editor_Open(ThisScenario[0], ThisScenario[1], out DialogueModuleList);
+                string[] ThisScenario = FABRICK_DIALOGUE_EDITOR_MANAGER.CurrentScenarioEditing.Split("@");
+                FABRICK_SCENARIO_RWDATA.Editor_Open(ThisScenario[0], ThisScenario[1], out FABRICK_DIALOGUE_EDITOR_MANAGER.DialogueModuleList);
             }
         }
 
@@ -100,8 +96,8 @@ namespace Fabrick.ENGINE.EDITOR
         {
             if (FABRICK_INPUT.IsKeyDown(SDL.Scancode.LCtrl) && FABRICK_INPUT.IsKeyPressed(SDL.Scancode.S))
             {
-                string[] ThisScenario = CurrentScenarioEditing.Split("@");
-                _ = FABRICK_SCENARIO_RWDATA.Editor_Save(ThisScenario[0], ThisScenario[1], DialogueModuleList);
+                string[] ThisScenario = FABRICK_DIALOGUE_EDITOR_MANAGER.CurrentScenarioEditing.Split("@");
+                _ = FABRICK_SCENARIO_RWDATA.Editor_Save(ThisScenario[0], ThisScenario[1], FABRICK_DIALOGUE_EDITOR_MANAGER.DialogueModuleList);
             }
         }
     }

@@ -10,25 +10,21 @@ namespace Fabrick.ENGINE.EDITOR.SCENE
         public FABRICK_SPRITE_ANIMATION_EDITOR_SCENE()
         {
             SceneName = "@DEV.SPRITE_ANIM_EDITOR";
-            InitializeAction = Initialize_Func;
-            RunningAction = Update_Func;
-            RenderAction = Render_Func;
-            LeaveAction = Leave_Func;
         }
-        public void Initialize_Func()
+        public override void Initialize()
         {
             FABRICK_ENTITY_MANAGER.RemoveCompleteAllEntityList();
             ThisScene.Initialize();
         }
-        public void Update_Func()
+        public override void Update()
         {
             ThisScene.Update();
         }
-        public void Render_Func()
+        public override void Render()
         {
             ThisScene.Render();
         }
-        public void Leave_Func()
+        public override void Leave()
         {
             
         }

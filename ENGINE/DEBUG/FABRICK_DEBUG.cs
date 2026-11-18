@@ -218,7 +218,6 @@ namespace Fabrick.ENGINE.DEBUG
                 Log(promptText + ": Declined");
             }
             return Result;
-            
         }
         #elif ANDORID
         public static bool DialogueInputText(string title, string promptText, ref string value, bool Multiline = false)

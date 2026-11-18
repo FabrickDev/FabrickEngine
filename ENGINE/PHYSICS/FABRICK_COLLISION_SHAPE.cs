@@ -63,7 +63,7 @@ namespace Fabrick.ENGINE.PHYSICS
         }
         public void SetPos(Vector2 Pos)
         {
-            this.Pos = Pos - this.Offset;
+            this.Pos = Pos;
         }
         public void SetOffset(Vector2 Offset, bool RecalculatePos = true)
         {

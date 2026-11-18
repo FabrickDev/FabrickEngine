@@ -6,10 +6,15 @@ namespace Fabrick.ENGINE.SCENE_MANAGER
 {
     public class SCENE_DATA
     {
-        public Action? RunningAction {get; set;}
+        public Action? UpdateAction {get; set;}
         public Action? RenderAction {get; set;}
         public Action? LeaveAction {get; set;}
         public Action? InitializeAction {get; set;}
+
+        internal Action? VN_InitializeAction {get; set;}
+        internal Action? VN_UpdateAction {get; set;}
+        internal Action? VN_RenderAction {get; set;}
+        internal Action? VN_LeaveAction {get; set;}
 
         public string SceneName = "";
         public bool IsMain = false;
@@ -17,35 +22,67 @@ namespace Fabrick.ENGINE.SCENE_MANAGER
 
         public FABRICK_ENGINE? Engine;
         public bool IsRunning {get; set;}
+        public bool Initialized = false;
+        public bool Leaved = true;
 
         public virtual SCENE_DATA Clone()
         {
             return new();
         }
 
-        public virtual void Initialize()
+        internal void SceneInitialize()
         {
-            FABRICK_DEBUG.Log($"[SCENE_MANAGER] Initialize Scene: {SceneName}...");
+            if(Initialized) return;
+            Leaved = false;
+            Initialized = true;
+
+            InitializeAction = Initialize;
+            UpdateAction = Update;
+            RenderAction = Render;
+            LeaveAction = Leave;
+
+            VN_InitializeAction = VN_Initialize;
+            VN_UpdateAction = VN_Update;
+            VN_RenderAction = VN_Render;
+            VN_LeaveAction = VN_Leave;
+            FABRICK_DEBUG.Log($"[FABRICK_SCENE_DATA : {SceneName}] Initialize Scene...");
             FABRICK_DEBUG.Log($"[SCENE_MANAGER] Total Entity: {FABRICK_ENTITY_MANAGER.ENTITY_LIST.Count}");
             InitializeAction?.Invoke();
+            VN_InitializeAction?.Invoke();
         }
 
-        public virtual void Update()
+        internal void SceneUpdate(FABRICK_ENGINE Engine)
         {   
-            RunningAction?.Invoke();
-        }
-        public virtual void Render()
-        {
-            RenderAction?.Invoke();
-        }
-        public virtual void Leave()
-        {
-            FABRICK_DEBUG.Log($"[SCENE_MANAGER] Leaving Scene: {SceneName}...");
-            LeaveAction?.Invoke();
-        }
-        public void UpdateEngine(FABRICK_ENGINE Engine)
-        {
             this.Engine = Engine;
+            IsRunning = true;
+            UpdateAction?.Invoke();
+            VN_UpdateAction?.Invoke();
         }
+        internal void SceneRender()
+        {
+            //FABRICK_DEBUG.Log($"[SCENE_DATA : {SceneName} Rendering...]");
+            RenderAction?.Invoke();
+            VN_RenderAction?.Invoke();
+        }
+        internal void SceneLeave()
+        {
+            if(Leaved) return;
+            FABRICK_DEBUG.Log($"[FABRICK_SCENE_DATA : {SceneName}] Leaving Scene...");
+            Leaved = true;
+            Initialized = false;
+            IsRunning = false;
+            LeaveAction?.Invoke();
+            VN_LeaveAction?.Invoke();
+        }
+
+        public virtual void Initialize(){}
+        public virtual void Update(){}
+        public virtual void Render(){}
+        public virtual void Leave(){}
+
+        internal virtual void VN_Initialize(){}
+        internal virtual void VN_Update(){}
+        internal virtual void VN_Render(){}
+        internal virtual void VN_Leave(){}
     }
 }

@@ -14,6 +14,7 @@ namespace Fabrick.ENGINE.VISUAL_NOVEL
         private bool isFlipped = false;
         private string FrameTextureName = "";
         private float VisibilityFlo = 1f;
+        private float TransparencyPortrait, TransparencyFrame = 0f;
         private float PortraitVisibility = 1f;
         public string DisplayName = "";
 
@@ -29,35 +30,34 @@ namespace Fabrick.ENGINE.VISUAL_NOVEL
             UpdateAction = Update;
             RenderAction = Render;
         }
-        public virtual void Initialize()
+        public override void Initialize()
         {
             
         }
-        public virtual void Update()
+        public override void Update()
         {
-            
+            TransparencyFrame = 1 - VisibilityFlo;
+            TransparencyPortrait = 1 - PortraitVisibility * VisibilityFlo;
+            //FABRICK_DEBUG.Log($"[FABRICK_VISUAL_NOVEL_PORTRAIT_CHAR : {Name}] My Current Pos: {Transform.GetPosition()}");
         }
-        public virtual void Render()
+        public override void Render()
         {
-            float _Transparency = 1 - VisibilityFlo;
-            float _PortraitTransparency = 1 - PortraitVisibility * VisibilityFlo;
-
             // Render Portrait
             if (!CurrentVariantTexture.IsWhiteSpace())
             {
                 if (isFlipped)
                 {
-                    FABRICK_DRAW_TEXTURE.RenderTexture(CurrentVariantTexture, this.Transform.GetPosition(), this.Transform.GetSize(), _PortraitTransparency, true, 1, SDL3.SDL.FlipMode.Horizontal);
+                    FABRICK_DRAW_TEXTURE.RenderTexture(CurrentVariantTexture, this.Transform.GetPosition(), this.Transform.GetSize(), TransparencyPortrait, true, 1, SDL3.SDL.FlipMode.Horizontal);
                 }
                 else
                 {
-                    FABRICK_DRAW_TEXTURE.RenderTexture(CurrentVariantTexture, this.Transform.GetPosition(), this.Transform.GetSize(), _PortraitTransparency, true);
+                    FABRICK_DRAW_TEXTURE.RenderTexture(CurrentVariantTexture, this.Transform.GetPosition(), this.Transform.GetSize(), TransparencyPortrait, true);
                 }
             }
             // Render Frame
             if (!FrameTextureName.IsWhiteSpace())
             {
-                FABRICK_DRAW_TEXTURE.RenderTexture(FrameTextureName, this.Transform.GetPosition() + FRAMEPos, this.Transform.GetSize() + FRAMESize, _Transparency, true);
+                FABRICK_DRAW_TEXTURE.RenderTexture(FrameTextureName, this.Transform.GetPosition() + FRAMEPos, this.Transform.GetSize() + FRAMESize, TransparencyFrame, true);
             }
         }
         public void CreateVariant(string Char, string VariantName, string TextureName)

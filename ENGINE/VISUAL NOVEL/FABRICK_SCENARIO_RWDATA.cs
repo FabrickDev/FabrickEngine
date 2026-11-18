@@ -1,6 +1,7 @@
 using System.CodeDom;
 using System.ComponentModel;
 using System.Reflection;
+using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
@@ -13,18 +14,18 @@ namespace Fabrick.ENGINE.VISUAL_NOVEL
 {
     public class FABRICK_SCENARIO_RWDATA
     {
-        private static string EngineDataPath = "";
+        private static string AssetsPath = "";
         private static string FileExtension = ".json";
 
-        internal static void SetEngineDataPath(string path)
+        internal static void SetAssetsPath(string path)
         {
-            EngineDataPath = Path.Combine(path, "Scenario");
+            AssetsPath = Path.Combine(path, "Scenario");
         }
-        internal static async Task Editor_Save(string ScenarioName, string ScenarioCategory, List<FABRICK_DIALOGUE_EDITOR_MODULE_ITEM> ModuleList)
+        internal static async Task Editor_Save(string ScenarioName, string ScenarioCategory, List<FABRICK_DIALOGUE_EDITOR_MODULE> ModuleList)
         {
             FABRICK_DEBUG.Log($"[FABRICK_SCENARIO_RWDATA] Write Scenario Data for: {ScenarioName}, Category: {ScenarioCategory}");
             // Check Directory
-            string path = Path.Combine(EngineDataPath, ScenarioCategory, ScenarioName + FileExtension);
+            string path = Path.Combine(AssetsPath, ScenarioCategory, ScenarioName + FileExtension);
             // if (!Directory.Exists(path))
             // {
             //     FABRICK_DEBUG.Log($"[FABRICK_SCENARIO_RWDATA] Creating new directory cuz ts didnt exist: {path}...");
@@ -42,7 +43,7 @@ namespace Fabrick.ENGINE.VISUAL_NOVEL
             FABRICK_DEBUG.Log($"[FABRICK_SCENARIO_RWDATA] Writing...");
             // Get Data
             List<SCENARIO_MODULE_DATA> ModuleDataList = new();
-            foreach (FABRICK_DIALOGUE_EDITOR_MODULE_ITEM ThisModule in ModuleList)
+            foreach (FABRICK_DIALOGUE_EDITOR_MODULE ThisModule in ModuleList)
             {
                 ModuleDataList.Add(ThisModule.ModuleData);
             }
@@ -108,9 +109,9 @@ namespace Fabrick.ENGINE.VISUAL_NOVEL
             File.WriteAllText(path, ScenarioDataString);
             FABRICK_DEBUG.Log($"[FABRICK_SCENARIO_RWDATA] Write Scenario Data for: {ScenarioName}, Category: {ScenarioCategory} is finished!!");
         }
-        internal static void Editor_Open(string ScenarioName, string ScenarioCategory, out List<FABRICK_DIALOGUE_EDITOR_MODULE_ITEM> ModuleList)
+        internal static void Editor_Open(string ScenarioName, string ScenarioCategory, out List<FABRICK_DIALOGUE_EDITOR_MODULE> ModuleList)
         {
-            string path = Path.Combine(EngineDataPath, ScenarioCategory, ScenarioName + FileExtension);
+            string path = Path.Combine(AssetsPath, ScenarioCategory, ScenarioName + FileExtension);
             if (!File.Exists(path))
             {
                 FABRICK_DEBUG.Log($"[FABRICK_SCENARIO_RWDATA] Error File Doesn't Exist!: {path}...");
@@ -119,11 +120,11 @@ namespace Fabrick.ENGINE.VISUAL_NOVEL
                 return;
             }
             string ModuleDataString = File.ReadAllText(path);
-            List<FABRICK_DIALOGUE_EDITOR_MODULE_ITEM> _ModuleList = new();
+            List<FABRICK_DIALOGUE_EDITOR_MODULE> _ModuleList = new();
             List<SCENARIO_MODULE_DATA> I = JsonSerializer.Deserialize<List<SCENARIO_MODULE_DATA>>(ModuleDataString) ?? new();
             foreach (SCENARIO_MODULE_DATA ThisModuleData in I)
             {
-                FABRICK_DIALOGUE_EDITOR_MODULE_ITEM _k = new(ThisModuleData.Type)
+                FABRICK_DIALOGUE_EDITOR_MODULE _k = new(ThisModuleData.Type)
                 {
                     ModuleData = ThisModuleData
                 };
@@ -139,7 +140,7 @@ namespace Fabrick.ENGINE.VISUAL_NOVEL
         }
         internal static List<SCENARIO_MODULE_DATA> LoadScenario(string ScenarioName, string ScenarioCategory)
         {
-            string path = Path.Combine(EngineDataPath, ScenarioCategory);
+            string path = Path.Combine(AssetsPath, ScenarioCategory);
             if (!Directory.Exists(path))
             {
                 FABRICK_DEBUG.Log($"[FABRICK_SCENARIO_RWDATA] Directory didn't Exist!!: {path}");
@@ -157,9 +158,10 @@ namespace Fabrick.ENGINE.VISUAL_NOVEL
             List<SCENARIO_MODULE_DATA> I = JsonSerializer.Deserialize<List<SCENARIO_MODULE_DATA>>(ModuleDataString) ?? new();
             foreach (SCENARIO_MODULE_DATA ThisModuleData in I)
             {
-                ThisModuleData.OutputToModule = ThisModuleData.OutputToModule
-                    .OrderBy(x => x.EndsWith("_Pauseable") ? 1 : 0)
-                    .ToList();
+                foreach (string ThisKey in ThisModuleData.OutputToModule.Keys)
+                {
+                    ThisModuleData.OutputToModule[ThisKey] = ThisModuleData.OutputToModule[ThisKey].OrderBy(x => x.EndsWith("_Pauseable") ? 1 : 0).ToList();
+                }
                 ModuleData.Add(ThisModuleData);
             }
 

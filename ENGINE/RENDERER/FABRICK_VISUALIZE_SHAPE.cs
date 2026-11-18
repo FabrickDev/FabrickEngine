@@ -26,25 +26,37 @@ namespace Fabrick.ENGINE.RENDERER
         {
             Visualize(Box, Color, Fill, false);
         }
-        public static void Visualize(Box Box, FABRICK_COLOR Color, bool Fill = true, bool OffsetPoint = false)
+        public static void Visualize(Box Box, FABRICK_COLOR Color, bool Fill = true, bool IsUi = false, bool OffsetPoint = false)
         {
             Vector2 Pos = new Vector2(Box.GetActualPos().X, Box.GetActualPos().Y);
             Vector2 Size = new Vector2(Box.GetSize().X, Box.GetSize().Y);
-            if (Fill)
+            if (OffsetPoint)
             {
-                FABRICK_DRAW_SHAPE.DrawFillRect(Pos, Size, Color);
+                Pos = new Vector2(Box.GetPos().X, Box.GetPos().Y);
+                Size = new Vector2(Box.GetSize().X, Box.GetSize().Y);
+            }
+            if (IsUi)
+            {
+                if (Fill)
+                {
+                    FABRICK_DRAW_SHAPE.DrawFillRect_UI(Pos, Size, Color);
+                }
+                else
+                {
+                    FABRICK_DRAW_SHAPE.DrawRect_UI(Pos, Size, Color);
+                }
             }
             else
             {
-                FABRICK_DRAW_SHAPE.DrawRect(Pos, Size, Color);
+                if (Fill)
+                {
+                    FABRICK_DRAW_SHAPE.DrawFillRect(Pos, Size, Color);
+                }
+                else
+                {
+                    FABRICK_DRAW_SHAPE.DrawRect(Pos, Size, Color);
+                }
             }
-            if (OffsetPoint)
-            {
-                Vector2 PosP = new Vector2(Box.GetActualPos().X + Box.GetOffset().X - 5, Box.GetActualPos().Y + Box.GetOffset().Y - 5);
-                Vector2 SizeP = new Vector2(10, 10);
-                FABRICK_DRAW_SHAPE.DrawFillRect(PosP, SizeP, FABRICK_COLOR.Black());
-            }
-            return;
         }
 
         public static void VisualizeNormal(Vector2 Pos, Vector2 Normal, float Length, FABRICK_COLOR Color)

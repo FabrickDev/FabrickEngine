@@ -13,7 +13,7 @@ namespace Fabrick.ENGINE.CORE
         // Private
         private bool IsDevMode = false;
         private bool LeavingDevMode = true;
-        private bool IsEditorMode = false;
+        internal bool IsEditorMode = false;
 
         private void DevEditorListener()
         {

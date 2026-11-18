@@ -1,4 +1,5 @@
 using System.Numerics;
+using System.Text;
 using Fabrick.ENGINE.DEBUG;
 using Fabrick.ENGINE.ENTITY;
 using Fabrick.ENGINE.MATH;
@@ -14,32 +15,32 @@ namespace Fabrick.ENGINE.RENDERER
             BoundSize = Vector2.Zero;
             if (Step <= 0) return;
 
-            string ModifiedText = "";
+            //string ModifiedText = "";
 
-            Step = FABRICK_MATH.Clamp(Step, 0, Text.Length);
+            //Step = FABRICK_MATH.Clamp(Step, 0, Text.Length);
 
-            for (int i = 0; i < Step; i++)
-            {
-                ModifiedText += Text[i];
-            }
 
-            DrawTextAdvanced(ModifiedText, FontName, Pos, Size, Color, Align, out BoundSize, MaxSentenceEachLine, ExtraPaddingEachLine, true, IsUI, Optimize, CustomCacheCategory);
+            // for (int i = 0; i < Step; i++)
+            // {
+            //     ModifiedText += Text[i];
+            // }
+
+            DrawTextAdvanced(Text.Substring(0, Step), FontName, Pos, Size, Color, Align, out BoundSize, MaxSentenceEachLine, ExtraPaddingEachLine, true, IsUI, Optimize, CustomCacheCategory);
         }
         public static void DrawTextAdvanced(string Text, string FontName, Vector2 Pos, float Size, FABRICK_COLOR Color, Algin Align, out Vector2 SizeBound, int MaxSentenceEachLine = 0, int ExtraPaddingEachLine = 0, bool Render = true, bool IsUI = false, bool Optimize = true, string CustomCacheCategory = "")
         {
-            if(ThisEngine is null)
+            SizeBound = Vector2.Zero;
+            if(ThisEngine is null || Text.Length == 0)
             {
-                SizeBound = Vector2.Zero;
                 return;
             }
             if (!FontList.ContainsKey(FontName))
             {
                 FABRICK_DEBUG.SimpleMessageError($"[FABRICK_DRAW_TEXT] Cannot Draw Text Cuz Theres no This Font: {FontName}");
-                SizeBound = Vector2.Zero;
                 return;
             }
             // Multiline Handle
-            Text = Text.Replace("\r\n", "\n");
+            //Text = Text.Replace("\r\n", "\n");
             string tempText = "";
             List<string> TextEachLine = new();
             List<Vector2> TextLineTextureSize = new();
@@ -86,30 +87,31 @@ namespace Fabrick.ENGINE.RENDERER
                 Size = Size,
                 Color = Color
             };
-            bool CreateCachePhase = true;
 
-            foreach (string ThisString in TextEachLine)
+            bool CacheFound = false;
+
+            SDL.FRect DRect = new();
+
+            for (int i = 0; i < TextEachLine.Count; i++)
             {
+                CacheFound = false;
                 if (CustomCacheCategory.Length > 0)
                 {
-                    _Setting.Text = CustomCacheCategory + "@" + _Setting.Text + ThisString;
+                    _Setting.Text = CustomCacheCategory + "@" + TextEachLine[i];
                 }
                 else
                 {
-                    _Setting.Text = _Setting.Text + ThisString;
+                    _Setting.Text =  TextEachLine[i];
                 }
-                
-                // Check Cache First
+
+
                 if (TextTextureCacheList.ContainsKey(CacheConvertFormat(_Setting)) && Optimize)
                 {
-                    CreateCachePhase = false;
-                    //FABRICK_DEBUG.Log($"[FABRICK_DRAW_TEXT.MEMORY_MANAGEMENT] Cache Found! {CacheConvertFormat(_Setting)}");
-                    SDL.FRect DRect = new SDL.FRect()
-                    {
+                    CacheFound = true;
+                    DRect = new(){
                         W = TextTextureCacheList[CacheConvertFormat(_Setting)].W,
                         H = TextTextureCacheList[CacheConvertFormat(_Setting)].H
                     };
-
                     if (Align == Algin.Center)
                     {
                         DRect.X = Pos.X - (DRect.W / 2);
@@ -124,6 +126,10 @@ namespace Fabrick.ENGINE.RENDERER
                     {
                         DRect.X = Pos.X - DRect.W;
                         DRect.Y = Pos.Y;
+                    }
+                    if (i > 0)
+                    {
+                        DRect.Y += (DRect.H * i) + ExtraPaddingEachLine;
                     }
                     if (Render)
                     {
@@ -146,13 +152,21 @@ namespace Fabrick.ENGINE.RENDERER
                             }
                             else
                             {
+                                //FABRICK_DEBUG.Log($"[FABRICK_DRAW_TEXT.MEMORY_MANAGEMENT] Cache Found! {CacheConvertFormat(_Setting)}");
                                 SDL.RenderTexture(ThisEngine.GetRenderer(), TextTextureCacheList[CacheConvertFormat(_Setting)].Texture, IntPtr.Zero, R);
                             }
                         }
-                        SizeBound = TextTextureCacheList[CacheConvertFormat(_Setting)].SizeBound;
-                        return;
                     }
+                    SizeBound = new Vector2(Math.Max(SizeBound.X, TextTextureCacheList[CacheConvertFormat(_Setting)].W), SizeBound.Y + TextTextureCacheList[CacheConvertFormat(_Setting)].H);
                 }
+            }
+            if (CacheFound)
+            {
+                if (Optimize)
+                {
+                    //FABRICK_DEBUG.Log(_Setting.Text + "_NotFound");
+                }
+                return;
             }
             // if (!CreateCachePhase)
             // {
@@ -160,10 +174,14 @@ namespace Fabrick.ENGINE.RENDERER
             //     return;
             // }
             // Cache Data
-            TextTextureCache _Cache = new();
-
             for (int i = 0; i < TextEachLine.Count; i++)
             {
+                TextTextureCache _Cache = new();
+                nint textRender = TTF.RenderTextSolid(FontList[FontName].Font, TextEachLine[i], 0, Color.Get_SDL_Color());
+                nint textTexture = SDL.CreateTextureFromSurface(ThisEngine.GetRenderer(), textRender);
+                SDL.DestroySurface(textRender);
+                SDL.GetTextureSize(textTexture, out float W, out float H);
+
                 if (CustomCacheCategory.Length > 0)
                 {
                     _Setting.Text = CustomCacheCategory + "@" + TextEachLine[i];
@@ -172,13 +190,10 @@ namespace Fabrick.ENGINE.RENDERER
                 {
                     _Setting.Text = TextEachLine[i];
                 }
-        
-                nint textRender = TTF.RenderTextSolid(FontList[FontName].Font, TextEachLine[i], 0, Color.Get_SDL_Color());
-                nint textTexture = SDL.CreateTextureFromSurface(ThisEngine.GetRenderer(), textRender);
-                SDL.DestroySurface(textRender);
-                SDL.GetTextureSize(textTexture, out float W, out float H);
+                //FABRICK_DEBUG.Log("[FABRICK_DRAW_TEXT.DRAW_TEXT] Current Render: " + TextEachLine[i]);
+                FABRICK_DEBUG.Log($"[FABRICK_DRAW_TEXT.DRAW_TEXT] Create Cache: {CacheConvertFormat(_Setting)}"); 
 
-                SDL.FRect DRect = new SDL.FRect
+                DRect = new SDL.FRect
                 {
                     W = W * Size / FontList[FontName].Renderquality,
                     H = H * Size / FontList[FontName].Renderquality
@@ -210,6 +225,8 @@ namespace Fabrick.ENGINE.RENDERER
                 {
                     TextLineTextureSize.Add(new Vector2(DRect.W, DRect.H));
                 }
+                _Cache.W = DRect.W;
+                _Cache.H = DRect.H;
 
                 if (Render)
                 {
@@ -217,44 +234,32 @@ namespace Fabrick.ENGINE.RENDERER
                     if (IsUI)
                     {
                         SDL.RenderTexture(ThisEngine.GetRenderer(), textTexture, IntPtr.Zero, DRect);
-                        _Cache.W = DRect.W;
-                        _Cache.H = DRect.H;
                     }
                     else
                     {
                         FABRICK_TRANSFORM T = FABRICK_CAMERA_MANAGER.WorldToScreen(new Vector2(DRect.X, DRect.Y), new Vector2(DRect.W, DRect.H));
                         SDL.FRect R = FABRICK_DRAW_SHAPE.MakeRect(T.GetActualPosition(), T.GetSize());
-                        // if ((R.X > FABRICK_CAMERA_MANAGER.GetCamSize().X || 
-                        //     R.Y > FABRICK_CAMERA_MANAGER.GetCamSize().Y ||
-                        //     R.X + R.W < 0 ||
-                        //     R.Y + R.H < 0) && Optimize)
-                        // {
-                        //     //SDL.DestroyTexture(textTexture);
-                        //     continue;
-                        // }
+
                         SDL.RenderTexture(ThisEngine.GetRenderer(), textTexture, IntPtr.Zero, R);
-                        _Cache.W = R.W;
-                        _Cache.H = R.H;
                     }
                 }
                 _Cache.Texture = textTexture;
+                
+                SizeBound = new Vector2(Math.Max(SizeBound.X, SizeBound.X + TextLineTextureSize[i].X), SizeBound.Y + TextLineTextureSize[i].Y);
+
+                _Cache.SizeBound = SizeBound;
+
                 //SDL.DestroyTexture(textTexture);
                 if(!Optimize) 
                 {
                     SDL.DestroyTexture(textTexture);
                 }
+                else
+                {
+                    TextTextureCacheList[CacheConvertFormat(_Setting)] = _Cache;
+                    //FABRICK_DEBUG.Log($"[FABRICK_DRAW_TEXT.DRAW_TEXT] Create Cache: {CacheConvertFormat(_Setting)}"); 
+                }
             }
-
-            SizeBound = Vector2.Zero;
-            for (int i = 0; i < TextLineTextureSize.Count; i++)
-            {
-                SizeBound = new Vector2(Math.Max(SizeBound.X, TextLineTextureSize[i].X), SizeBound.Y + TextLineTextureSize[i].Y);
-            }
-            _Cache.SizeBound = SizeBound;
-            // Write Cache
-            if(!Optimize) return;
-            TextTextureCacheList[CacheConvertFormat(_Setting)] = _Cache;
-            FABRICK_DEBUG.Log($"[FABRICK_DRAW_TEXT.DRAW_TEXT] Create Cache: {CacheConvertFormat(_Setting)}");
         }
         public static void DrawDevText(string Text, Vector2 Pos, float Size, FABRICK_COLOR Color, Algin Align, bool Optimize = true)
         {

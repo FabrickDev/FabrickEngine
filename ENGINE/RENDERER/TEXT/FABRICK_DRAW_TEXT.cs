@@ -73,7 +73,7 @@ namespace Fabrick.ENGINE.RENDERER
             }
             if (UseEngineDataPath && ThisEngine is not null)
             {
-                FileName = Path.Combine(ThisEngine.MainEngineDataPath, "Font", FileName);
+                FileName = Path.Combine(ThisEngine.AssetsDataPath, "Font", FileName);
             }
 
             FontData _data = new();

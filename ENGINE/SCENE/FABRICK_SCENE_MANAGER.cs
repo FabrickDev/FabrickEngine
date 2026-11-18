@@ -6,8 +6,6 @@ namespace Fabrick.ENGINE.SCENE_MANAGER
     public class FABRICK_SCENE_MANAGER
     {
         public static string CurrentSceneName = "";
-        private static string LastSceneName = "";
-        private static bool InitializedScene = false;
         private static bool IsPauseAllAcene = false;
         private static bool IsPauseAllOverlayScene = false;
         private static bool IsPauseAllAceneOnceUpdate = true;
@@ -95,35 +93,7 @@ namespace Fabrick.ENGINE.SCENE_MANAGER
             SceneList[Name].IsMain = _IsMain;
             FABRICK_DEBUG.Log("[SCENE MANAGER] Added Scene: " + Name);
         }
-        public static void InitializeScene(string Name)
-        {
-            bool _found = false;
-            bool _isOverlay = false;
-            if (SceneList.ContainsKey(Name))
-            {
-                _found = true;
-            }
-            if (OverlaySceneList.ContainsKey(Name))
-            {
-                _found = true;
-                _isOverlay = true;
-            }
-
-            if (_found == false)
-            {
-                FABRICK_DEBUG.SimpleMessageError($"[SCENE_MANAGER] Try to initialize this Scene: {Name} didn't exist!");
-                return;
-            }
-            if (_isOverlay)
-            {
-                OverlaySceneList[Name].Initialize();
-            }
-            else
-            {
-                SceneList[Name].Initialize();
-            }
-            FABRICK_DEBUG.Log($"[SCENE_MANAGER] Initialized Scene: {Name}");
-        }
+ 
         public static void AddOverlaySceneRunList(string SceneName)
         {
             if (!OverlaySceneList.ContainsKey(SceneName))
@@ -161,40 +131,29 @@ namespace Fabrick.ENGINE.SCENE_MANAGER
             OverlayScene_AlwaysOnTop = Name;
         }
 
-        public static void RunScene(string Name)
+        public static void RunScene(string Name, FABRICK_ENGINE Engine)
         {
             if (!SceneList.ContainsKey(Name))
             {
                 FABRICK_DEBUG.SimpleMessageError($"[SCENE_MANAGER][RunScene] Try to run this Scene: {Name} didn't exist!");
                 return;
             }
-            // Trigger Current Scene to Leave
-            if (SceneList.ContainsKey(LastSceneName) && LastSceneName != Name)
+
+            // Initialize Scene Handle
+            if (SceneList[Name].Initialized == false)
             {
-                FABRICK_DEBUG.SimpleMessageWarning($"Leaving Scene... Last Scene: {LastSceneName}");
-                SceneList[CurrentSceneName].Leave();
-                SceneList[CurrentSceneName].IsRunning = false;
-                LastSceneName = Name;
-                FABRICK_DEBUG.SimpleMessageWarning("Initializing Scene");
-                SceneList[Name].Initialize();
-            }
-            // Trigger First Scene to Initialize
-            if (!InitializedScene)
-            {
-                FABRICK_DEBUG.SimpleMessageWarning("Initializing First Scene");
-                SceneList[Name].Initialize();
-                InitializedScene = true;
+                SceneList[Name].SceneInitialize();
             }
 
             CurrentSceneName = Name;
-            SceneList[Name].IsRunning = true;
+
             if (!IsPauseAllAcene || IsPauseAllAceneOnceUpdate)
             {
-                UpdateScene(Name);
+                SceneList[Name].SceneUpdate(Engine);
                 IsPauseAllAceneOnceUpdate = false;
             }
         }
-        public static void RunOverlayScene(string Name)
+        public static void RunOverlayScene(string Name, FABRICK_ENGINE Engine)
         {
             if (string.IsNullOrWhiteSpace(Name))
             {
@@ -202,40 +161,45 @@ namespace Fabrick.ENGINE.SCENE_MANAGER
             }
             if (!OverlaySceneList.ContainsKey(Name))
             {
-                FABRICK_DEBUG.SimpleMessageError($"[SCENE_MANAGER][RunOverlayScene] Try to run this Overlay Scene: {Name} didn't exist in OverlaySceneList!");
+                FABRICK_DEBUG.SimpleMessageError($"[SCENE_MANAGER][RunScene] Try to run this Scene Overlay: {Name} didn't exist!");
                 return;
             }
-            if (!OverlaySceneRunList.Contains(Name))
+            // Trigger Current Scene to Leave
+            if (OverlaySceneList[Name].Initialized == false)
             {
-                FABRICK_DEBUG.SimpleMessageError($"[SCENE_MANAGER][RunOverlayScene] Try to run this Overlay Scene: {Name} didn't exist in OverlaySceneRunList!");
-                return;
+                OverlaySceneList[Name].SceneInitialize();
             }
 
-            OverlaySceneList[Name].IsRunning = true;
             if (!IsPauseAllOverlayScene || IsPauseAllOverlaySceneOnceUpdate)
             {
-                UpdateOverlayScene(Name);
+                OverlaySceneList[Name].SceneUpdate(Engine);
                 IsPauseAllOverlaySceneOnceUpdate = false;
             }
         }
-        public static void UpdateScene(string Name)
-        {
-            if (!SceneList.ContainsKey(Name))
-            {
-                FABRICK_DEBUG.SimpleMessageError($"[SCENE_MANAGER][UpdateScene] Try to update this Scene: {Name} didn't exist!");
-                return;
-            }
-            SceneList[Name].Update();
-        }
-        public static void UpdateOverlayScene(string Name)
-        {
-            if (!OverlaySceneList.ContainsKey(Name))
-            {
-                FABRICK_DEBUG.SimpleMessageError($"[SCENE_MANAGER][UpdateOverlayScene] Try to update this Overlay Scene: {Name} didn't exist!");
-                return;
-            }
-            OverlaySceneList[Name].Update();
-        }
+        // public static void RunOverlayScene(string Name)
+        // {
+        //     if (string.IsNullOrWhiteSpace(Name))
+        //     {
+        //         return;
+        //     }
+        //     if (!OverlaySceneList.ContainsKey(Name))
+        //     {
+        //         FABRICK_DEBUG.SimpleMessageError($"[SCENE_MANAGER][RunOverlayScene] Try to run this Overlay Scene: {Name} didn't exist in OverlaySceneList!");
+        //         return;
+        //     }
+        //     if (!OverlaySceneRunList.Contains(Name))
+        //     {
+        //         FABRICK_DEBUG.SimpleMessageError($"[SCENE_MANAGER][RunOverlayScene] Try to run this Overlay Scene: {Name} didn't exist in OverlaySceneRunList!");
+        //         return;
+        //     }
+
+        //     OverlaySceneList[Name].IsRunning = true;
+        //     if (!IsPauseAllOverlayScene || IsPauseAllOverlaySceneOnceUpdate)
+        //     {
+        //         UpdateOverlayScene(Name);
+        //         IsPauseAllOverlaySceneOnceUpdate = false;
+        //     }
+        // }
 
         public static void PauseAllScene(bool State)
         {
@@ -247,14 +211,19 @@ namespace Fabrick.ENGINE.SCENE_MANAGER
             if(!State) IsPauseAllOverlaySceneOnceUpdate = true;
             IsPauseAllOverlayScene = State;
         }
-        public static void UpdateAllScene(FABRICK_ENGINE ENGINE)
+        public static void UpdateAllScene(FABRICK_ENGINE Engine)
         {
-            SetEngine(ENGINE);
             if (SceneList.Count == 0)
             {
                 return;
             }
-            RunScene(CurrentSceneName);
+            // Leave Handle
+            foreach (string ThisSceneKey in SceneList.Keys)
+            {
+                if (ThisSceneKey != CurrentSceneName) SceneList[ThisSceneKey].SceneLeave();
+            }
+
+            RunScene(CurrentSceneName, Engine);
             //FABRICK_DEBUG.Log($"[FABRICK_SCENE_MANAGER] Updating: {GetCurrentScene()}");
 
             // Skip if Overlay Scene Null
@@ -281,24 +250,38 @@ namespace Fabrick.ENGINE.SCENE_MANAGER
                 return;
             }
 
+            // Leave Handle
+            foreach (string ThisOVSceneKey in OverlaySceneList.Keys)
+            {
+                bool NotInRun = true;
+                foreach(string ThisOVSceneRunKey in OverlaySceneRunList)
+                {
+                    if(ThisOVSceneKey == ThisOVSceneRunKey) NotInRun = false;
+                }
+                if (NotInRun)
+                {
+                    OverlaySceneList[ThisOVSceneKey].SceneLeave();
+                }
+            }
             //Updating Overlay Scene by Run List
             foreach (string ThisScene in OverlaySceneRunList)
             {
                 if (OverlaySceneList[ThisScene].SceneName != OverlayScene_AlwaysOnTop)
                 {
-                    RunOverlayScene(ThisScene);
+                    RunOverlayScene(ThisScene, Engine);
                 }
             }
+
             if (OverlaySceneRunList.Contains(OverlayScene_AlwaysOnTop))
             {    
-                RunOverlayScene(OverlayScene_AlwaysOnTop);
+                RunOverlayScene(OverlayScene_AlwaysOnTop, Engine);
             }
         }
         public static void RenderAllScene()
         {
-            if (SceneList.ContainsKey(CurrentSceneName) && SceneList[CurrentSceneName].IsRunning)
+            if (SceneList.ContainsKey(CurrentSceneName))
             {
-                SceneList[CurrentSceneName].Render();
+                SceneList[CurrentSceneName].SceneRender();
                 //FABRICK_DEBUG.Log($"[FABRICK_SCENE_MANAGER] Rendering: {GetCurrentScene()}");
             }
             else
@@ -309,41 +292,13 @@ namespace Fabrick.ENGINE.SCENE_MANAGER
             {
                 if (OverlaySceneList[ThisScene].SceneName != OverlayScene_AlwaysOnTop)
                 {
-                    OverlaySceneList[ThisScene].Render();
+                    OverlaySceneList[ThisScene].SceneRender();
                 }
             }
             if (!string.IsNullOrWhiteSpace(OverlayScene_AlwaysOnTop) && OverlaySceneRunList.Contains(OverlayScene_AlwaysOnTop))
             {
-                OverlaySceneList[OverlayScene_AlwaysOnTop].Render();    
+                OverlaySceneList[OverlayScene_AlwaysOnTop].SceneRender();    
             }
-        }
-        public static void SetEngine(FABRICK_ENGINE ENGINE)
-        {
-            if (SceneList.Count == 0)
-            {
-                return;
-            }
-            foreach (var ThisKey in SceneList.Keys.ToList())
-            {
-                SceneList[ThisKey].UpdateEngine(ENGINE);
-            }
-            if (OverlaySceneList.Count == 0)
-            {
-                return;
-            }
-            foreach (var ThisKey in OverlaySceneList.Keys.ToList())
-            {
-                OverlaySceneList[ThisKey].UpdateEngine(ENGINE);
-            }
-        }
-        public static void RestartScene(string Name)
-        {
-            if (!SceneList.ContainsKey(Name))
-            {
-                FABRICK_DEBUG.SimpleMessageWarning($"[SCENE_MANAGER] Try to restart this Scene: {Name} already didn't exist!");
-                return;
-            }
-            //SceneList[Name].RestartScene();
         }
         public static void RestartOverlayScene(string Name)
         {
@@ -368,7 +323,7 @@ namespace Fabrick.ENGINE.SCENE_MANAGER
         {
             if (!OverlaySceneList.ContainsKey(Name))
             {
-                FABRICK_DEBUG.SimpleMessageWarning($"[SCENE_MANAGER] Try to remove this Overlay Scene: {Name} already didn't exist!");
+                FABRICK_DEBUG.Log($"[SCENE_MANAGER] Try to remove this Overlay Scene: {Name} already didn't exist!");
                 return;
             }
             OverlaySceneList.Remove(Name);
@@ -379,35 +334,16 @@ namespace Fabrick.ENGINE.SCENE_MANAGER
             FABRICK_DEBUG.Log("[SCENE_MANAGER] Remove All Scene List!!");
             foreach (string ThisKey in SceneList.Keys)
             {
-                SceneList[ThisKey].Leave();
+                SceneList[ThisKey].SceneLeave();
             }
             SceneList.Clear();
             foreach (string ThisKey in OverlaySceneList.Keys)
             {
-                OverlaySceneList[ThisKey].Leave();
+                OverlaySceneList[ThisKey].SceneLeave();
             }
             OverlaySceneList.Clear();
         }
-        public static void UpdateRunningState()
-        {
-            if (SceneList.Count == 0)
-            {
-                return;
-            }
-            // foreach (string ThisKey in SceneList.Keys.ToList())
-            // {
-            //     SceneList[ThisKey].OnLeave = false;
-            // }
 
-            if (OverlaySceneList.Count == 0)
-            {
-                return;
-            }
-            // foreach (string ThisKey in OverlaySceneList.Keys.ToList())
-            // {
-            //     OverlaySceneList[ThisKey].OnLeave = false;
-            // }
-        }
         // public static void LeaveSceneHandle()
         // {
         //     if (SceneList.Count == 0)
@@ -426,7 +362,6 @@ namespace Fabrick.ENGINE.SCENE_MANAGER
         public static void SetCurrentScene(string SceneName)
         {
             FABRICK_DEBUG.Log("[SCENE MANAGER] Set Current Scene: " + SceneName);
-            LastSceneName = CurrentSceneName;
             CurrentSceneName = SceneName;
         }
         public static string GetCurrentScene()

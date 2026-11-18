@@ -1,6 +1,7 @@
 using System.Numerics;
 using Fabrick.ENGINE.INPUT;
 using Fabrick.ENGINE.MATH;
+using SDL3;
 
 namespace Fabrick.ENGINE.PHYSICS
 {
@@ -53,14 +54,50 @@ namespace Fabrick.ENGINE.PHYSICS
         public static bool IntersectCollisionPointBox(Vector2 Point, Box Box)
         {
             bool Collision = false;
-            if ((Point.X >= Box.GetActualPos().X) &&
-                (Point.X < Box.GetActualPos().X + Box.GetSize().X) &&
-                (Point.Y >= Box.GetActualPos().Y) &&
-                (Point.Y < Box.GetActualPos().Y + Box.GetSize().Y))
+            if ((Point.X >= Box.GetPos().X) &&
+                (Point.X < Box.GetPos().X + Box.GetSize().X) &&
+                (Point.Y >= Box.GetPos().Y) &&
+                (Point.Y < Box.GetPos().Y + Box.GetSize().Y))
             {
                 Collision = true;
             }
             return Collision;
+        }
+        public static bool MouseClickToBox_Pressed(Box box, SDL.MouseButtonFlags KeyCode, bool IsUi = true)
+        {
+            bool Return = false;
+            Vector2 MousePos = Vector2.Zero;
+            if (IsUi)
+            {
+                MousePos = FABRICK_INPUT.GetMousePos_UI();
+            }
+            else
+            {
+                MousePos = FABRICK_INPUT.GetMousePos();
+            }
+            if(IntersectCollisionPointBox(MousePos, box) && FABRICK_INPUT.IsMousePressed(KeyCode))
+            {
+                Return = true;
+            }
+            return Return;
+        }
+        public static bool MouseClickToBox_Down(Box box, SDL.MouseButtonFlags KeyCode, bool IsUi = true)
+        {
+            bool Return = false;
+            Vector2 MousePos = Vector2.Zero;
+            if (IsUi)
+            {
+                MousePos = FABRICK_INPUT.GetMousePos_UI();
+            }
+            else
+            {
+                MousePos = FABRICK_INPUT.GetMousePos();
+            }
+            if(IntersectCollisionPointBox(MousePos, box) && FABRICK_INPUT.IsMouseDown(KeyCode))
+            {
+                Return = true;
+            }
+            return Return;
         }
     }
 }

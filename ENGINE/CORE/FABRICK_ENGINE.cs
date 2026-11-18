@@ -41,19 +41,19 @@ namespace Fabrick.ENGINE.CORE
         // Color FFF3D1
         private FABRICK_COLOR DefaultLogicalBackgroundColor = new FABRICK_COLOR(0xFF, 0xF3, 0xD1, 0xFF);
 
-        public string MainEngineDataPath = "D:\\PROJECT\\BATARA\\FABRICK_ENGINE\\FABRICK_ENGINE";
-        public string MainEngineDevAssetsPath = "D:\\PROJECT\\BATARA\\FABRICK_ENGINE\\FABRICK_ENGINE\\ENGINE\\DEV_ASSETS";
+        public string AssetsDataPath = @"D:\PROJECT\BATARA\FABRICK_ENGINE\FABRICK_ENGINE\ASSETS";
+        public string SaveDataPath = @"D:\PROJECT\BATARA\FABRICK_ENGINE\FABRICK_ENGINE\SAVES";
 
-        private Dictionary<int, Action> FunctionUpdateList = new Dictionary<int, Action>();
+        private List<Action> FunctionUpdateList = new();
         private UInt16 FunctionUpdateList_I = 0;
         private bool FunctionUpdateList_Error = false;
 
-        private Dictionary<int, Action> FunctionInitializeList = new Dictionary<int, Action>();
+        private List<Action> FunctionInitializeList = new();
         private UInt16 FunctionInitializeList_I = 0;
         private bool FunctionInitializeList_Error = false;
         private bool FunctionInitializeList_Finished = false;
 
-        private Dictionary<int, Action> RenderList = new Dictionary<int, Action>();
+        private List<Action> RenderList = new();
         private UInt16 RenderList_I = 0;
         private bool RenderList_Error = false;
 
@@ -93,7 +93,7 @@ namespace Fabrick.ENGINE.CORE
             IsDevMode = state;
         }
         // Initialize Render Engine
-        public bool Initialize(string WindowName, int Width, int Height, bool FullScreen, int VSync, string EngineDataPath)
+        public bool Initialize(string WindowName, int Width, int Height, bool FullScreen, int VSync, string? AssetsDataPath, string? SaveDataPath)
         {
             FABRICK_DEBUG.Log("[FABRICK_ENGINE] |=============== FABRICK ENGINE ===============|");
             FABRICK_DEBUG.Log("[FABRICK_ENGINE] Fabrick Engine Initialize Phase!!");
@@ -115,18 +115,35 @@ namespace Fabrick.ENGINE.CORE
                 break;
             }
 
-            FABRICK_DEBUG.Log("[FABRICK_ENGINE] Set Engine Data Path: " + EngineDataPath);
-            FABRICK_IOFILES_MANAGER.ThisEnginePath = EngineDataPath;
-            FABRICK_DRAW_TEXTURE.EngineDataPath = EngineDataPath;
-            MainEngineDataPath = EngineDataPath;
-            FABRICK_ENTITY_RWDATA.SetEngineDataPath(MainEngineDataPath);
-            FABRICK_SCENE_RWDATA.SetEngineDataPath(MainEngineDataPath);
-            FABRICK_SCENARIO_RWDATA.SetEngineDataPath(MainEngineDataPath);
+            FABRICK_DEBUG.Log("[FABRICK_ENGINE] Set Assets Data Path: " + AssetsDataPath);
+            if(AssetsDataPath != null && AssetsDataPath.Length > 0) this.AssetsDataPath = AssetsDataPath;
+            FABRICK_DEBUG.Log("[FABRICK_ENGINE] Set Save Data Path: " + SaveDataPath);
+            if(SaveDataPath != null && SaveDataPath.Length > 0) this.SaveDataPath = SaveDataPath;
+            if (!Directory.Exists(this.AssetsDataPath))
+            {
+                Directory.CreateDirectory(this.AssetsDataPath);
+            }
+            if (!Directory.Exists(this.SaveDataPath))
+            {
+                Directory.CreateDirectory(this.SaveDataPath);
+            }
+            FABRICK_GLOBAL_VARIABLE_MANAGER.SaveDataPath = this.SaveDataPath;
+            FABRICK_IOFILES_MANAGER.ThisAssetsPath = this.AssetsDataPath;
+            FABRICK_DRAW_TEXTURE.ThisAssetsPath = this.AssetsDataPath;
+            FABRICK_ENTITY_RWDATA.SetAssetsPath(this.AssetsDataPath);
+            FABRICK_SCENE_RWDATA.SetAssetsPath(this.AssetsDataPath);
+            FABRICK_SCENARIO_RWDATA.SetAssetsPath(this.AssetsDataPath);
 
             FABRICK_TEXTURE_MANAGER.Initialize();
             FABRICK_GLOBAL_VARIABLE_MANAGER.Initialize();
 
             FABRICK_DEBUG.Log("[FABRICK_ENGINE] Initialize Video...");
+            // if (!SDL.SetHint("SDL_RENDER_GPU_LOW_POWER", "0"))
+            // {
+            //     FABRICK_DEBUG.SimpleMessageWarning($"SDL could not set hint: {SDL.GetError()}");
+            //     SDL.LogError(SDL.LogCategory.System, $"SDL could not set hint: {SDL.GetError()}");
+            // }
+
             if (!SDL.Init(SDL.InitFlags.Video))
             {
                 FABRICK_DEBUG.SimpleMessageError($"SDL could not initialize: {SDL.GetError()}");
@@ -161,11 +178,11 @@ namespace Fabrick.ENGINE.CORE
             //     FABRICK_DEBUG.Log("[FABRICK_ENGINE] Vulkan Available, set to Vulkan Driver rn.");
             // }
             
-            FABRICK_DEBUG.Log($"[FABRICK_ENGINE] Using Driver: {SDL.GetVideoDriver}");
             window = SDL.CreateWindow(WindowName, Width, Height, SDL.WindowFlags.Transparent);
             renderer = SDL.CreateRenderer(window, null);
             SDL.SetWindowOpacity(window, 0f);
-            // FABRICK_DEBUG.Log($"[FABRICK_ENGINE] Renderer API: {SDL.GetRendererName(renderer)}");
+            FABRICK_DEBUG.Log($"[FABRICK_ENGINE] Using Driver: {SDL.GetCurrentVideoDriver()}");
+            FABRICK_DEBUG.Log($"[FABRICK_ENGINE] Renderer API: {SDL.GetRendererName(renderer)}");
 
 
             // if (!SDL.CreateWindowAndRenderer(WindowName, Width, Height, 0, out window, out renderer))
@@ -221,6 +238,14 @@ namespace Fabrick.ENGINE.CORE
             */
     
             SDL.SetWindowFullscreen(window, FullScreen);
+
+            // Always Set Window to Half Size of Screen
+            SDL.DisplayMode? DisplayMode = SDL.GetCurrentDisplayMode(SDL.GetPrimaryDisplay()).Value;
+            if (DisplayMode.HasValue && !FullScreen)
+            {
+                SDL.SetWindowSize(window, DisplayMode.Value.W / 2, DisplayMode.Value.H / 2);
+                SDL.SetWindowPosition(window, DisplayMode.Value.W / 4, DisplayMode.Value.H / 4);
+            }
 
             // Main Componen
             FABRICK_DEBUG.Log("[FABRICK_ENGINE] Initialize Main Components...");
@@ -292,9 +317,16 @@ namespace Fabrick.ENGINE.CORE
                     if(FunctionInitializeList_Error == false)
                     {
                         // Run Functions Initialize
-                        for (UInt16 i = 0; i < FunctionInitializeList_I; i++)
+                        //for (UInt16 i = 0; i < FunctionInitializeList_I; i++)
+                        //{
+                        //    if(FunctionInitializeList != null) FunctionInitializeList[i]?.Invoke();
+                        //}
+                        if (FunctionInitializeList != null)
                         {
-                            if(FunctionInitializeList != null) FunctionInitializeList[i]();
+                            foreach (Action ThisAction in FunctionInitializeList)
+                            {
+                                ThisAction.Invoke();
+                            }
                         }
                         FunctionInitializeList_Finished = true;
                     }
@@ -320,18 +352,24 @@ namespace Fabrick.ENGINE.CORE
                 if(FunctionUpdateList_Error == false && !IsEditorMode)
                 {
                     // Run Functions Update
-                    for (UInt16 i = 0; i < FunctionUpdateList_I; i++)
+                    if(FunctionUpdateList != null)
                     {
-                        if(FunctionUpdateList != null) FunctionUpdateList[i]();
+                        for (int i = 0; i < FunctionUpdateList.Count; i++)
+                        {
+                            if (FunctionUpdateList != null) FunctionUpdateList[i]();
+                        }
                     }
                 }
                 
                 if(RenderList_Error == false)
                 {
                     // Run Functions Update
-                    for (int i = 0; i < RenderList_I; i++)
+                    if (RenderList != null)
                     {
-                        if(RenderList != null) RenderList[i]();
+                        for (int i = 0; i < RenderList.Count; i++)
+                        {
+                            if (RenderList != null) RenderList[i]();
+                        }
                     }
                 }
 
@@ -407,14 +445,14 @@ namespace Fabrick.ENGINE.CORE
             FABRICK_DRAW_SHAPE.Update(this);
             SPRITE_SHEET_MANAGER.DeltaTime = DeltaTime;
             // Scenario Manager Update
-            FABRICK_SCENARIO_MANAGER.RunScenarioHandle();
             // DrawText Update
             FABRICK_DRAW_TEXT.UpdateEngine(this);
             // Camera Update
             FABRICK_CAMERA_MANAGER.Update(this);
             // Scenemanager Update State Handle
+            FABRICK_SCENARIO_MANAGER.ThisEngine = this;
+            FABRICK_SCENARIO_MANAGER.RunScenarioHandle();
             //FABRICK_SCENE_MANAGER.LeaveSceneHandle();
-            FABRICK_SCENE_MANAGER.UpdateRunningState();
             FABRICK_SCENE_MANAGER.PauseAllScene(IsEditorMode);
             FABRICK_SCENE_MANAGER.UpdateAllScene(this);
             FABRICK_SCENE_MANAGER.RenderAllScene();
@@ -431,18 +469,15 @@ namespace Fabrick.ENGINE.CORE
         // Save Functions
         public void AssignFunctionInitialize(Action func)
         {
-            FunctionInitializeList[FunctionInitializeList_I] = func;
-            FunctionInitializeList_I++;
+            FunctionInitializeList.Add(func);
         }
         public void AssignFunctionUpdate(Action func)
         {
-            FunctionUpdateList[FunctionUpdateList_I] = func;
-            FunctionUpdateList_I++;
+            FunctionUpdateList.Add(func);
         }
         public void AssignRenderOrder(Action func)
         {
-            RenderList[RenderList_I] = func;
-            RenderList_I++;
+            RenderList.Add(func);
         }
 
         // Get Window and Renderer

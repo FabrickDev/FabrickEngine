@@ -13,7 +13,7 @@ using SDL3;
 
 namespace Fabrick.ENGINE.EDITOR.DIALOGUE_EDITOR
 {
-    internal class FABRICK_DIALOGUE_EDITOR_MODULE_ITEM
+    internal partial class FABRICK_DIALOGUE_EDITOR_MODULE
     {
         internal SCENARIO_MODULE_DATA ModuleData = new();
         private float FontSize = 4f;
@@ -25,17 +25,16 @@ namespace Fabrick.ENGINE.EDITOR.DIALOGUE_EDITOR
         private Vector2 MoverAreaOffset = Vector2.Zero;
         public bool IsFocushed = true;
         public string ModuleId = "";
-        public Vector2 Pos, PosDrag, InputPos, OutputPos;
+        public Vector2 Pos, PosDrag;
+        public List<Vector2> InputPos = new(); 
+        public List<Vector2> OutputPos = new();
         //public List<INPUT_OUTPUT_CAHNNEL> InputOutputChannel = new();
-        public List<string> CoiceList = new();
         public SCENARIO_MODULE_TYPE ThisType = SCENARIO_MODULE_TYPE.Start;
         public bool IsConditionSatisfied = false;
         private int IOYOffset = 0;
         private int IOYOffsetEachLine = 30;
 
-        private bool ChangeIsMainCast = false;
-
-        public FABRICK_DIALOGUE_EDITOR_MODULE_ITEM(SCENARIO_MODULE_TYPE ModuleType)
+        public FABRICK_DIALOGUE_EDITOR_MODULE(SCENARIO_MODULE_TYPE ModuleType)
         {
             ThisType = ModuleType;
             if(ModuleId.Length > 0) return; 
@@ -106,6 +105,9 @@ namespace Fabrick.ENGINE.EDITOR.DIALOGUE_EDITOR
                         {
                             // Draw Form (Input)
                             // Draw Six Comparator (Output)
+                            MoverSize = new Vector2(300, 50);
+                            SizeModule = new Vector2(300, 250);
+                            IOYOffset = 100;
                         }
                     break;
                     case SCENARIO_MODULE_TYPE.SetGlobalVariable:
@@ -119,13 +121,30 @@ namespace Fabrick.ENGINE.EDITOR.DIALOGUE_EDITOR
                     case SCENARIO_MODULE_TYPE.Coice:
                         // Stack Multiple Form of Coice (Each Button has Output)
                         // Button to Add Coice
+                        MoverSize = new Vector2(300, 50);
+                        SizeModule = new Vector2(300, 160);
+                        IOYOffset = 10;
+                        if (ModuleData.CoiceList.Count > 0)
+                        {
+                            Vector2 _Size = new Vector2(SizeModule.X - 20, 30);
+                            for (int i = 0; i < ModuleData.CoiceList.Count; i++)
+                            {
+                                IOYOffset += (int)_Size.Y;
+                                SizeModule.Y += (int)_Size.Y;
+                            }
+                        }
                     break;
                     case SCENARIO_MODULE_TYPE.Form:
                         // Form (Input & Output) Output are String
                     break;
                     case SCENARIO_MODULE_TYPE.ChangeCast:
-                        MoverSize = new Vector2(200, 50);
-                        SizeModule = new Vector2(200, 160);
+                        MoverSize = new Vector2(300, 50);
+                        SizeModule = new Vector2(300, 160);
+                        IOYOffset = 75;
+                    break;
+                    case SCENARIO_MODULE_TYPE.ModifyCastVariant:
+                        MoverSize = new Vector2(300, 50);
+                        SizeModule = new Vector2(300, 160);
                         IOYOffset = 75;
                     break;
                 }
@@ -159,28 +178,28 @@ namespace Fabrick.ENGINE.EDITOR.DIALOGUE_EDITOR
                 case SCENARIO_MODULE_TYPE.Start:
                     // Draw Label (Only Output)
                     FABRICK_DRAW_TEXT.DrawDevText("Start", Pos, FontSize, EDITOR_MANAGER.Color3, Algin.Center);
-                    UpdateOutputPin();
+                    UpdateOutputPin(["Normal"], out _);
                 break;
                 case SCENARIO_MODULE_TYPE.End:
                     // Draw Label (Only Input)
                     FABRICK_DRAW_TEXT.DrawDevText("End", Pos, FontSize, EDITOR_MANAGER.Color3, Algin.Center);
-                    UpdateInputPin();
+                    UpdateInputPin(out _);
                 break;
                 case SCENARIO_MODULE_TYPE.Dialogue:
                     // Draw Form (Input and Output)
                     FABRICK_DRAW_TEXT.DrawDevText("Dialogue", Pos, FontSize, EDITOR_MANAGER.Color3, Algin.Center);
                     // Form Text
                     Dialogue_DialogueButton();
-                    UpdateInputPin();
-                    UpdateOutputPin();
+                    UpdateInputPin(out _);
+                    UpdateOutputPin(["Normal"], out _);
                 break;
                 case SCENARIO_MODULE_TYPE.Compare:
                     // Draw Form (Input)
                     // Draw Six Comparator (Output)
-                    if (IsConditionSatisfied)
-                    {
-                        IsConditionSatisfied = false;
-                    }
+                    FABRICK_DRAW_TEXT.DrawDevText("Comparator", Pos, FontSize, EDITOR_MANAGER.Color3, Algin.Center);
+                    Comparator();
+                    UpdateInputPin(out _);
+                    UpdateOutputPin(["Normal", "Except"], out _);
                 break;
                 case SCENARIO_MODULE_TYPE.SetGlobalVariable:
                     // Form (Input)
@@ -191,28 +210,46 @@ namespace Fabrick.ENGINE.EDITOR.DIALOGUE_EDITOR
                 case SCENARIO_MODULE_TYPE.Coice:
                     // Label "Input" (Input)
                     // Stack Multiple Button of Coice (Each Button has Output)
+                    FABRICK_DRAW_TEXT.DrawDevText("Coice", Pos, FontSize, EDITOR_MANAGER.Color3, Algin.Center);
+                    Coice(out float _CPosY);
+                    UpdateInputPin(out _);
+                    List<string> _tmp = new();
+                    for (int i = 0; i < ModuleData.CoiceList.Count; i++)
+                    {
+                        _tmp.Add(Convert.ToString(i));
+                    }
+                    UpdateOutputPin(_tmp.ToArray(), out _);
                 break;
                 case SCENARIO_MODULE_TYPE.Form:
                     // Form (Input & Output) Output are String
                 break;
                 case SCENARIO_MODULE_TYPE.ChangeCast:
-                    FABRICK_DRAW_TEXT.DrawDevText("Change Cast", Pos, FontSize, EDITOR_MANAGER.Color3, Algin.Center);
+                    FABRICK_DRAW_TEXT.DrawDevText("Change Main Cast", Pos, FontSize, EDITOR_MANAGER.Color3, Algin.Center);
                     ChangeCast();
-                    UpdateInputPin();
+                    UpdateInputPin(out _);
                 break;
-                case SCENARIO_MODULE_TYPE.ChangeCastVariant:
+                case SCENARIO_MODULE_TYPE.ModifyCastVariant:
+                    FABRICK_DRAW_TEXT.DrawDevText("Modify Cast", Pos, FontSize, EDITOR_MANAGER.Color3, Algin.Center);
+                    ModifyCast();
+                    UpdateInputPin(out _);
                 break;
             }
         }
         
         private void FocusHandler()
         {
+            if (FABRICK_INPUT.IsKeyDown(SDL.Scancode.LAlt) || 
+                FABRICK_INPUT.GetMousePos_UI().Y < FABRICK_DIALOGUE_EDITOR_MANAGER.MinWorkingArea.Y ||
+                FABRICK_COLLISIONS.IntersectCollisionPointBox(FABRICK_INPUT.GetMousePos_UI(), FABRICK_DIALOGUE_EDITOR_MANAGER.ListWindowBox))
+            {
+                IsFocushed = false;
+                return;
+            }
             Box FocusArea = new Box(Pos - new Vector2(SizeModule.X / 2, 0), Vector2.Zero, MoverSize + new Vector2(0, SizeModule.Y));
             if (FABRICK_COLLISIONS.IntersectCollisionPointBox(FABRICK_INPUT.GetMousePos(), FocusArea) && FABRICK_INPUT.IsMousePressed(SDL.MouseButtonFlags.Left) && !FABRICK_SCENARIO_MANAGER.VisualNovelRunning)
             {
                 FABRICK_DIALOGUE_EDITOR_MANAGER.FocusModule = ModuleId;
             }
-
             if (FABRICK_DIALOGUE_EDITOR_MANAGER.FocusModule == ModuleId)
             {
                 IsFocushed = true;
@@ -239,179 +276,6 @@ namespace Fabrick.ENGINE.EDITOR.DIALOGUE_EDITOR
             if (MoverAreaState)
             {
                 PosDrag = FABRICK_INPUT.GetMousePos() + MoverAreaOffset;
-            }
-        }
-        
-        private void UpdateInputPin()
-        {
-            FABRICK_DRAW_TEXT.DrawDevText("Input",  new Vector2(0, IOYOffset) + Pos + new Vector2(0, IOYOffsetEachLine) + new Vector2((PinRadius * 1.75f) - (MoverSize.X / 2),  MoverSize.Y + (PinRadius * 1.25f)), 2f, EDITOR_MANAGER.Color3, Algin.Left);
-            Box _temp = new Box(                    new Vector2(0, IOYOffset) + Pos + new Vector2(0, IOYOffsetEachLine) + new Vector2((PinRadius / 2.00f) - (MoverSize.X / 2),  MoverSize.Y + (PinRadius * 1.25f)), Vector2.Zero, new Vector2(PinRadius));
-            InputPos = _temp.GetPos() + new Vector2(PinRadius / 2, PinRadius / 2);
-            FABRICK_VISUALIZE_SHAPE.Visualize(_temp, EDITOR_MANAGER.Color3, true);
-            // Receive Input
-            if (FABRICK_COLLISIONS.IntersectCollisionPointBox(FABRICK_INPUT.GetMousePos(), _temp) && FABRICK_INPUT.IsMousePressed(SDL.MouseButtonFlags.Left) && FABRICK_DIALOGUE_EDITOR.ModuleWantToConnect.Length > 0)
-            {
-                if (FABRICK_DIALOGUE_EDITOR.ModuleWantToConnect == ModuleId)
-                {
-                    // Abort
-                    FABRICK_DIALOGUE_EDITOR.ModuleWantToConnect = "";
-                }
-                else
-                {
-                    for (int i = 0; i < FABRICK_DIALOGUE_EDITOR.DialogueModuleList.Count; i++)
-                    {
-                        if (FABRICK_DIALOGUE_EDITOR.DialogueModuleList[i].ModuleId == FABRICK_DIALOGUE_EDITOR.ModuleWantToConnect)
-                        {
-                            FABRICK_DEBUG.Log($"[MODULE: {FABRICK_DIALOGUE_EDITOR.ModuleWantToConnect} Was Connected to {ModuleId}]");
-                            FABRICK_DIALOGUE_EDITOR.DialogueModuleList[i].ModuleData.OutputToModule.Add(ModuleId);
-                            FABRICK_DIALOGUE_EDITOR.ModuleWantToConnect = "";
-                        }
-                    }
-                }
-            }
-        }
-        
-        private void UpdateOutputPin()
-        {
-            FABRICK_DRAW_TEXT.DrawDevText   ("Output",  new Vector2(0, IOYOffset) + Pos + new Vector2(0, IOYOffsetEachLine) + new Vector2(MoverSize.X - (PinRadius * 1.25f) - (MoverSize.X / 2), MoverSize.Y + (PinRadius * 1.25f)) + new Vector2(-PinRadius * 3, 0), 2f, EDITOR_MANAGER.Color3, Algin.Right);
-            Box _temp = new Box             (           new Vector2(0, IOYOffset) + Pos + new Vector2(0, IOYOffsetEachLine) + new Vector2(MoverSize.X - (PinRadius * 1.25f) - (MoverSize.X / 2), MoverSize.Y + (PinRadius * 1.25f)),                                        Vector2.Zero, new Vector2(PinRadius));
-            OutputPos = _temp.GetPos() + new Vector2(PinRadius / 2, PinRadius / 2);
-            FABRICK_VISUALIZE_SHAPE.Visualize(_temp, EDITOR_MANAGER.Color3, true);
-            
-            // Send Channel
-            if (FABRICK_COLLISIONS.IntersectCollisionPointBox(FABRICK_INPUT.GetMousePos(), _temp) && FABRICK_INPUT.IsMousePressed(SDL.MouseButtonFlags.Left))
-            {
-                FABRICK_DEBUG.Log($"[MODULE: {ModuleId} Want to Connect]");
-                FABRICK_DIALOGUE_EDITOR.ModuleWantToConnect = ModuleId;
-            }
-            
-            // Remove Channel on That Module
-            if (FABRICK_COLLISIONS.IntersectCollisionPointBox(FABRICK_INPUT.GetMousePos(), _temp) && FABRICK_INPUT.IsMousePressed(SDL.MouseButtonFlags.Right))
-            {
-                ModuleData.OutputToModule.Clear();
-            }
-        }
-
-        private void ChangeCast()
-        {
-            Vector2 _Pos = Pos + new Vector2(10, 10 + MoverSize.Y) - new Vector2(SizeModule.X / 2, 0);
-            Vector2 _Size = new Vector2(SizeModule.X - 20, 30);
-            Vector2 _Pos2 = _Pos + new Vector2(0, _Size.Y) + new Vector2(0, 5);
-            Vector2 _Pos3 = _Pos2 + new Vector2(0, _Size.Y) + new Vector2(0, 5);
-            
-            List<string> MainOrOpp = new ()
-            {
-                "Main",
-                "Opponent"
-            };
-            List<string> LString = new();
-            List<string> VariantString = new();
-            // Draw BG
-            FABRICK_DRAW_SHAPE.DrawFillRect(_Pos, _Size, EDITOR_MANAGER.Color3);
-            FABRICK_DRAW_SHAPE.DrawFillRect(_Pos2, _Size, EDITOR_MANAGER.Color3);
-            FABRICK_DRAW_SHAPE.DrawFillRect(_Pos3, _Size, EDITOR_MANAGER.Color3);
-            
-            string ThisCast = "Select Cast...";
-            string ThisCastVariant = "Select Cast Variant...";
-            if (ModuleData.DialogueCast.Length > 0)
-            {
-                ThisCast = ModuleData.DialogueCast;
-            }
-            if (ModuleData.DialogueCastVariant.Length > 0)
-            {
-                ThisCastVariant = ModuleData.DialogueCastVariant;
-            }
-            // Draw Text
-            if (!ChangeIsMainCast)
-            {
-                FABRICK_DRAW_TEXT.DrawTextAdvanced("Main Cast", "DefaultFont", _Pos, 2f, EDITOR_MANAGER.Color1, Algin.Left, out _, 0, 0, true, false, true, "ModuleEditor");
-            }
-            else
-            {
-                FABRICK_DRAW_TEXT.DrawTextAdvanced("Opponent Cast", "DefaultFont", _Pos, 2f, EDITOR_MANAGER.Color1, Algin.Left, out _, 0, 0, true, false, true, "ModuleEditor");
-            }
-            
-            // Name Char
-            foreach (string ThisChar in FABRICK_SCENARIO_MANAGER.PortraitsCastList.Keys)
-            {
-                if (FABRICK_SCENARIO_MANAGER.PortraitsCastList[ThisChar].IsMain() != ChangeIsMainCast)
-                {
-                    LString.Add(ThisChar);
-                }
-            }
-
-            // Variant Char
-            if (ModuleData.DialogueCast.Length > 0)
-            {
-                foreach (string ThisVariant in FABRICK_SCENARIO_MANAGER.PortraitsCastList[ModuleData.DialogueCast].Variant.Keys)
-                {
-                    string[] vari = ThisVariant.Split(".");
-                    if (vari[0] != ModuleData.DialogueCast)
-                    {
-                        continue;
-                    }
-
-                    VariantString.Add(vari[1]);
-                }
-            }
-            
-            FABRICK_DRAW_TEXT.DrawTextAdvanced(ThisCast, "DefaultFont", _Pos2, 2f, EDITOR_MANAGER.Color1, Algin.Left, out _, 0, 0, true, false, true, "ModuleEditor");
-            FABRICK_DRAW_TEXT.DrawTextAdvanced(ThisCastVariant, "DefaultFont", _Pos3, 2f, EDITOR_MANAGER.Color1, Algin.Left, out _, 0, 0, true, false, true, "ModuleEditor");
-            // Input Response
-            if(!IsFocushed) return;
-            Box box1 = new(_Pos, Vector2.Zero, _Size);
-            Box box2 = new(_Pos2, Vector2.Zero, _Size);
-            Box box3 = new(_Pos3, Vector2.Zero, _Size);
-            if (FABRICK_COLLISIONS.IntersectCollisionPointBox(FABRICK_INPUT.GetMousePos(), box1) && FABRICK_INPUT.IsMousePressed(SDL.MouseButtonFlags.Left))
-            {
-                ChangeIsMainCast = Convert.ToBoolean(FABRICK_DEBUG.DialogueList("Select Cast", "Cast: ", ref MainOrOpp));
-                ModuleData.DialogueCast = "";
-                ModuleData.DialogueCastVariant = "";
-            }
-            if (FABRICK_COLLISIONS.IntersectCollisionPointBox(FABRICK_INPUT.GetMousePos(), box2) && FABRICK_INPUT.IsMousePressed(SDL.MouseButtonFlags.Left))
-            {
-                int val = FABRICK_DEBUG.DialogueList("Select Cast", "Cast: ", ref LString);
-                if (val != -1)
-                {
-                    ModuleData.DialogueCast = LString[val];
-                    ModuleData.DialogueCastVariant = "";
-                    FABRICK_DEBUG.Log($"[{ModuleId}]Selected Cast: " + ModuleData.DialogueCast);
-                }
-            }
-            if (FABRICK_COLLISIONS.IntersectCollisionPointBox(FABRICK_INPUT.GetMousePos(), box3) && FABRICK_INPUT.IsMousePressed(SDL.MouseButtonFlags.Left))
-            {
-                int val = FABRICK_DEBUG.DialogueList("Select Cast Variant", "Variant: ", ref VariantString);
-                if (val != -1)
-                {
-                    ModuleData.DialogueCastVariant = VariantString[val];
-                    FABRICK_DEBUG.Log($"[{ModuleId}]Selected Cast Variant: " + ModuleData.DialogueCastVariant);
-                }
-            }
-
-        }
-
-        private void Dialogue_DialogueButton()
-        {
-            // Draw BG
-            Vector2 _Pos = Pos + new Vector2(10, 10 + MoverSize.Y) - new Vector2(SizeModule.X / 2, 0);
-            Vector2 _Size = new Vector2(SizeModule.X - 20, 110);
-            FABRICK_DRAW_SHAPE.DrawFillRect(_Pos, _Size, EDITOR_MANAGER.Color3);
-
-            // Draw Text
-            if (ModuleData.DialogueText.Length > 0)
-            {
-                FABRICK_DRAW_TEXT.DrawTextAdvanced(ModuleData.DialogueText, "DefaultFont", _Pos, 2f, EDITOR_MANAGER.Color1, Algin.Left, out _, 40, 0, true, false, true, "ModuleEditor");
-            }
-            else
-            {
-                FABRICK_DRAW_TEXT.DrawTextAdvanced("Enter Dialogue Here...", "DefaultFont", _Pos, 2f, EDITOR_MANAGER.Color1, Algin.Left, out _, 40, 0, true, false, true, "ModuleEditor");
-            }
-            // Response
-            if(!IsFocushed) return;
-            Box box = new(_Pos, Vector2.Zero, _Size);
-            if (FABRICK_COLLISIONS.IntersectCollisionPointBox(FABRICK_INPUT.GetMousePos(), box) && FABRICK_INPUT.IsMousePressed(SDL.MouseButtonFlags.Left))
-            {
-                ModuleData.DialogueText = FABRICK_DEBUG.DialogueInputText("Dialogue", "Input text here...", ModuleData.DialogueText, true);
             }
         }
     }

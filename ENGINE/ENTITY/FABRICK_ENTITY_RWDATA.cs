@@ -28,19 +28,19 @@ namespace Fabrick.ENGINE.ENTITY
     }
     public class FABRICK_ENTITY_RWDATA
     {
-        public static string EngineDataPath = "";
+        public static string AssetsPath = "";
         private static string FolderName = "Scene";
         private static string FileExtension = ".json";
-        public static void SetEngineDataPath(string Path)
+        public static void SetAssetsPath(string Path)
         {
-            EngineDataPath = Path + "\\";
+            AssetsPath = Path + "\\";
         }
         public static async Task WriteEntityData(string Name)
         {
             FABRICK_DEBUG.Log($"[ENTITY_MANAGER] Write Entity Data for {Name} ...");
             string PT = "";
             
-            PT = Path.Combine(EngineDataPath, FolderName);
+            PT = Path.Combine(AssetsPath, FolderName);
             if (!Directory.Exists(PT))
             {
                 FABRICK_DEBUG.Log($"[ENTITY_MANAGER] Creating new directory cuz ts didnt exist: {PT}...");
@@ -81,7 +81,7 @@ namespace Fabrick.ENGINE.ENTITY
         {
             FABRICK_DEBUG.Log($"[FABRICK_ENTITY_RWDATA] Reading Entity Data for {Name} ...");
             string PT = "";
-            PT = Path.Combine(EngineDataPath, FolderName);
+            PT = Path.Combine(AssetsPath, FolderName);
             if (!Directory.Exists(PT))
             {
                 FABRICK_DEBUG.SimpleMessageError($"[FABRICK_ENTITY_RWDATA] Directory: {PT} not found!!");

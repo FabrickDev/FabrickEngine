@@ -9,7 +9,7 @@ namespace Fabrick.ENGINE.RENDERER
     public class FABRICK_DRAW_TEXTURE
     {
         internal static nint renderer;
-        internal static string EngineDataPath = "";
+        internal static string ThisAssetsPath = "";
 
         public static void SetSource(string name, Vector2 Pos, Vector2 Size)
         {

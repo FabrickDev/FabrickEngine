@@ -4,13 +4,13 @@ namespace Fabrick.ENGINE.IOFILES
 {
     public class FABRICK_IOFILES_MANAGER
     {
-        internal static string ThisEnginePath = "";
+        internal static string ThisAssetsPath = "";
         public static List<string> GetFiles(string path, bool UseEnginePath = true, bool RemoveEnginePath = true)
         {
             string ThisDirectory = "";
             if (UseEnginePath)
             {
-                ThisDirectory = Path.Combine(ThisEnginePath, path);
+                ThisDirectory = Path.Combine(ThisAssetsPath, path);
             }
             else
             {
@@ -33,9 +33,9 @@ namespace Fabrick.ENGINE.IOFILES
                 string _temp = "";
                 if (RemoveEnginePath)
                 {
-                    for(int i = 1; i < ThisFile.Replace(Path.Combine(ThisEnginePath, path), "").Length; i++)
+                    for(int i = 1; i < ThisFile.Replace(Path.Combine(ThisAssetsPath, path), "").Length; i++)
                     {
-                        _temp += ThisFile.Replace(Path.Combine(ThisEnginePath, path), "")[i];
+                        _temp += ThisFile.Replace(Path.Combine(ThisAssetsPath, path), "")[i];
                     }
                 }
                 _tempFiles.Add(_temp);

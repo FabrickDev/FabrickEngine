@@ -15,12 +15,12 @@ namespace Fabrick.ENGINE.VISUAL_NOVEL
         {
             return new FABRICK_VISUAL_NOVEL_DIALOGUE_TEXT(Name, Id);
         }
-        private string TestText = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, \nsed do eiusmod tempor incididunt ut labore et dolore \nmagna aliqua. Ut enim ad minim veniam, \nquis nostrud exercitation ullamco laboris nisi ut aliquip ex ea";
+        //private string TestText = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, \nsed do eiusmod tempor incididunt ut labore et dolore \nmagna aliqua. Ut enim ad minim veniam, \nquis nostrud exercitation ullamco laboris nisi ut aliquip ex ea";
         private bool TextFinishStep = false;
         private float TextSize = 4f;
         private float StepText = 0;
         private float StepSpeed = 0;
-        private int MaxSentenceEachLine = 60;
+        private int MaxSentenceEachLine = 45;
         private bool CacheRemoved = true;
         private string CacheCategory_CastName = "CastName";
         private string CacheCategory_CastDialogue = "CastDialogue";
@@ -30,20 +30,14 @@ namespace Fabrick.ENGINE.VISUAL_NOVEL
             this.Category = "Visual Novel";
             this.Name = Name;
             this.Id = Id;
-
-            InitializeAction = Initialize;
-            UpdateAction = Update;
-            RenderAction = Render;
+            CacheCategory_CastName = string.Join(CacheCategory_CastName, "@", Name);
+            CacheCategory_CastDialogue = string.Join(CacheCategory_CastDialogue, "@", Name);
         }
-        public void Initialize()
+        public override void Initialize()
         {
             
         }
-        public void Update()
-        {
-            
-        }
-        public void Render()
+        public override void Update()
         {
             if (CacheRemoved && !FABRICK_SCENARIO_MANAGER.VisualNovelRunning)
             {
@@ -56,8 +50,8 @@ namespace Fabrick.ENGINE.VISUAL_NOVEL
                 CacheRemoved = true;
             }
             StepText += StepSpeed * DeltaTime;
-            StepText = FABRICK_MATH.Clamp(StepText, 0, TestText.Length);
-            if (StepText >= TestText.Length)
+            StepText = FABRICK_MATH.Clamp(StepText, 0, FABRICK_SCENARIO_MANAGER.VisualNovelText.Length);
+            if (StepText >= FABRICK_SCENARIO_MANAGER.VisualNovelText.Length)
             {
                 TextFinishStep = true;
             }
@@ -70,15 +64,20 @@ namespace Fabrick.ENGINE.VISUAL_NOVEL
                 StepText = 0;
                 FABRICK_SCENARIO_MANAGER.VisualNovelTextNext = true;
             }
-            FABRICK_DRAW_TEXT.DrawTextAdvanced(FABRICK_SCENARIO_MANAGER.VisualNovelCast, "DefaultFont", Transform.GetPosition() + new Vector2(-80, -60), 4, FABRICK_COLOR.Black(), Algin.Left, out _, MaxSentenceEachLine, 0, true, true, true, CacheCategory_CastName);
+        }
+        public override void Render()
+        {
+            FABRICK_DRAW_TEXT.DrawTextAdvanced(FABRICK_SCENARIO_MANAGER.VisualNovelCast, FABRICK_DRAW_TEXT.GetDefaultFontName(), Transform.GetPosition() + new Vector2(-80, -60), 4, FABRICK_COLOR.Black(), Algin.Left, out _, MaxSentenceEachLine, 0, true, true, true, CacheCategory_CastName);
+            if(FABRICK_SCENARIO_MANAGER.VisualNovelText.Length == 0) return;
+            //FABRICK_DRAW_TEXT.DrawTextAdvanced(FABRICK_SCENARIO_MANAGER.VisualNovelText, FABRICK_DRAW_TEXT.GetDefaultFontName(), Transform.GetPosition(), 4, FABRICK_COLOR.Black(), Algin.Left, out _, MaxSentenceEachLine, 0, true, true, true, CacheCategory_CastName);
             FABRICK_DRAW_TEXT.DrawTextEachLetter(FABRICK_SCENARIO_MANAGER.VisualNovelText, (int)StepText, FABRICK_DRAW_TEXT.GetDefaultFontName(), Transform.GetPosition(), TextSize, FABRICK_COLOR.Black(), Algin.Left, out _, MaxSentenceEachLine, 0, true, true, CacheCategory_CastDialogue);
         }
-        public void SetText(string Text)
-        {
-            TestText = Text;
-            StepText = 0;
-            TextFinishStep = false;
-        }
+        // public void SetText(string Text)
+        // {
+        //     TestText = Text;
+        //     StepText = 0;
+        //     TextFinishStep = false;
+        // }
         // Default is 4
         public void SetTextSize(float TextSize)
         {
