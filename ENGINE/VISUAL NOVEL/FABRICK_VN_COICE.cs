@@ -12,7 +12,7 @@ namespace Fabrick.ENGINE.VISUAL_NOVEL
         private string CacheCategory = "VNCoice";
         public FABRICK_VISUAL_NOVEL_COICE(string Name, int Id)
         {
-            this.Category = "Visual Novel Coice";
+            this.Category = "VisualNovelCoice";
             this.Name = Name;
             this.Id = Id;
             CacheCategory = string.Join(CacheCategory, "@", Name);

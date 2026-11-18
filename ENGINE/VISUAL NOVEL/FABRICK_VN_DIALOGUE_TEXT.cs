@@ -27,7 +27,7 @@ namespace Fabrick.ENGINE.VISUAL_NOVEL
 
         public FABRICK_VISUAL_NOVEL_DIALOGUE_TEXT(string Name, int Id)
         {
-            this.Category = "Visual Novel";
+            this.Category = "VisualNovelDialoguetext";
             this.Name = Name;
             this.Id = Id;
             CacheCategory_CastName = string.Join(CacheCategory_CastName, "@", Name);

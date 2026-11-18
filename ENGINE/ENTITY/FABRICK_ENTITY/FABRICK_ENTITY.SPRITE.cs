@@ -7,23 +7,37 @@ namespace Fabrick.ENGINE.ENTITY
 {
     public partial class FABRICK_ENTITY
     {
-        private List<string> SpriteTextureList = new();
+        public List<string> SpriteTextureList = new();
         private bool UnloadSpriteTextureWhenEntityRemoved = true;
         
         public void SPRITE_AssignTextureSpriteSheet(string SpriteSheetName, string FileName, string Category)
         {
             string FinalCategory = Category + "EntitySprite" + this.Name;
-            SPRITE_SHEET_MANAGER.AssignTextureSpriteSheet(SpriteSheetName, FinalCategory, "", FileName);
             if (SpriteTextureList.Contains(SPRITE_SHEET_MANAGER.GetSpriteTextureName(SpriteSheetName, FinalCategory)))
             {
                 return;
             }
+            SPRITE_SHEET_MANAGER.AssignTextureSpriteSheet(SpriteSheetName, FinalCategory, Category, FileName);
             SpriteTextureList.Add(SPRITE_SHEET_MANAGER.GetSpriteTextureName(SpriteSheetName, FinalCategory));
         }
-        public void SPRITE_CreateSprite(string SheetName, string SpriteSheetName, string Category, SPRITE_COOR_DATA CoorData)
+        public string SPRITE_GetTextureName(string SpriteSheetName, string Category)
         {
             string FinalCategory = Category + "EntitySprite" + this.Name;
-            SPRITE_SHEET_MANAGER.CreateSpriteSheet(SheetName, FinalCategory, SpriteSheetName, CoorData.Pos, CoorData.Size);
+            return SPRITE_SHEET_MANAGER.GetSpriteTextureName(SpriteSheetName, FinalCategory);
+        }
+        public bool SPRITE_IsTextureAvailable(string SpriteSheetName, string Category)
+        {
+            string FinalCategory = Category + "EntitySprite" + this.Name;
+            if (SpriteTextureList.Contains(SPRITE_SHEET_MANAGER.GetSpriteTextureName(SpriteSheetName, FinalCategory)))
+            {
+                return true;
+            }
+            return false;
+        }
+        public void SPRITE_CreateSprite(string SpriteName, string SpriteSheetName, string Category, SPRITE_COOR_DATA CoorData)
+        {
+            string FinalCategory = Category + "EntitySprite" + this.Name;
+            SPRITE_SHEET_MANAGER.CreateSpriteSheet(SpriteName, FinalCategory, SpriteSheetName, CoorData.Pos, CoorData.Size);
         }
         public void SPRITE_CreateSpriteAnimation(string AnimationName, string SpriteSheetName, string Category, List<SPRITE_COOR_DATA> CoorData)
         {

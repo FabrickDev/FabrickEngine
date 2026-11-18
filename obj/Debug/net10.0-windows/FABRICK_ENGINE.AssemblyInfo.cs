@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("FABRICK_ENGINE")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+bdedd4b2b370cdaf9f372e54eb1d76a1f5370913")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e1c2f6c52a0ac37174c70033c3949ac182256bcf")]
 [assembly: System.Reflection.AssemblyProductAttribute("FABRICK_ENGINE")]
 [assembly: System.Reflection.AssemblyTitleAttribute("FABRICK_ENGINE")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

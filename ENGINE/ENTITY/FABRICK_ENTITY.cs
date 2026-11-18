@@ -29,9 +29,9 @@ namespace Fabrick.ENGINE.ENTITY
                                         Id = this.Id,
                                         Transform = this.Transform,
                                         Visibility = this.Visibility,
-                                        InitializeAction = this.InitializeAction,
-                                        UpdateAction = this.UpdateAction,
-                                        RenderAction = this.RenderAction };
+                                        InitializeAction = this.Initialize,
+                                        UpdateAction = this.Update,
+                                        RenderAction = this.Render };
         }
 
         public virtual void EntityInitialize()

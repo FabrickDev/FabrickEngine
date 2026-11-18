@@ -21,14 +21,10 @@ namespace Fabrick.ENGINE.VISUAL_NOVEL
         private Vector2 FRAMEPos, FRAMESize = new();
         public FABRICK_VISUAL_NOVEL_PORTRAIT_CHAR(string Name, bool IsMainChar, int Id)
         {
-            this.Category = "VN Portrait";
+            this.Category = "VisualNovelPortrait";
             this.Name = Name;
             this.Id = Id;
             this.IsMainChar = IsMainChar;
-
-            InitializeAction = Initialize;
-            UpdateAction = Update;
-            RenderAction = Render;
         }
         public override void Initialize()
         {
@@ -43,7 +39,8 @@ namespace Fabrick.ENGINE.VISUAL_NOVEL
         public override void Render()
         {
             // Render Portrait
-            if (!CurrentVariantTexture.IsWhiteSpace())
+            //FABRICK_DEBUG.Log("Rendering Frame");
+            if (CurrentVariantTexture.Length > 0)
             {
                 if (isFlipped)
                 {
@@ -55,24 +52,20 @@ namespace Fabrick.ENGINE.VISUAL_NOVEL
                 }
             }
             // Render Frame
-            if (!FrameTextureName.IsWhiteSpace())
+            if (FrameTextureName.Length > 0)
             {
                 FABRICK_DRAW_TEXTURE.RenderTexture(FrameTextureName, this.Transform.GetPosition() + FRAMEPos, this.Transform.GetSize() + FRAMESize, TransparencyFrame, true);
             }
         }
-        public void CreateVariant(string Char, string VariantName, string TextureName)
+        public void CreateVariant(string Char, string VariantName, string SpriteSheetName, string Category)
         {
             if (Variant.ContainsKey(Char + "." + VariantName))
             {
                 FABRICK_DEBUG.SimpleMessageWarning($"Cannot Create Variant: {Char + "." + VariantName}, Cus already exist!!");
                 return;
             }
-            if (!FABRICK_TEXTURE_MANAGER.TextureDataList.ContainsKey(TextureName))
-            {
-                FABRICK_DEBUG.SimpleMessageWarning($"Cannot Create Variant: {Char + "." + VariantName}, Cus texture: {TextureName} doesn't exist!!");
-                return;
-            }
-            Variant[Char + "." + VariantName] = TextureName;
+
+            Variant[Char + "." + VariantName] = SPRITE_GetTextureName(SpriteSheetName, Category);
         }
         public void SetVariant(string Char, string VariantName)
         {
@@ -81,14 +74,14 @@ namespace Fabrick.ENGINE.VISUAL_NOVEL
                 CurrentVariantTexture = Variant[Char + "." + VariantName];
             }
         }
-        public void SetFrame(string TextureName)
+        public void SetFrame(string SpriteSheetName, string Category)
         {
-            if (!FABRICK_TEXTURE_MANAGER.TextureDataList.ContainsKey(TextureName))
+            if (!SPRITE_IsTextureAvailable(SpriteSheetName, Category))
             {
-                FABRICK_DEBUG.SimpleMessageWarning($"Cannot Set Frame, Cus texture: {TextureName} doesn't exist!!");
+                FABRICK_DEBUG.SimpleMessageWarning($"Cannot Set Frame, Cus sprite: {SpriteSheetName}, Category: {Category} doesn't exist!!");
                 return;
             }
-            FrameTextureName = TextureName;
+            FrameTextureName = SPRITE_GetTextureName(SpriteSheetName, Category);;
         }
         public void SetFrameOffsetPos(float PosX, float PosY)
         {

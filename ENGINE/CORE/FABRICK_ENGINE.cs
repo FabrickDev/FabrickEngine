@@ -35,6 +35,7 @@ namespace Fabrick.ENGINE.CORE
 
         private nint window;
         private nint renderer;
+        private nint device;
 
         // Color "3F1E11"
         private FABRICK_COLOR DefaultBackgroundColor = new FABRICK_COLOR(0x3F, 0x1E, 0x11, 0xFF);
@@ -130,6 +131,7 @@ namespace Fabrick.ENGINE.CORE
             FABRICK_GLOBAL_VARIABLE_MANAGER.SaveDataPath = this.SaveDataPath;
             FABRICK_IOFILES_MANAGER.ThisAssetsPath = this.AssetsDataPath;
             FABRICK_DRAW_TEXTURE.ThisAssetsPath = this.AssetsDataPath;
+            FABRICK_SHADER_MANAGER.AssetDataPath = this.AssetsDataPath;
             FABRICK_ENTITY_RWDATA.SetAssetsPath(this.AssetsDataPath);
             FABRICK_SCENE_RWDATA.SetAssetsPath(this.AssetsDataPath);
             FABRICK_SCENARIO_RWDATA.SetAssetsPath(this.AssetsDataPath);
@@ -179,6 +181,7 @@ namespace Fabrick.ENGINE.CORE
             // }
             
             window = SDL.CreateWindow(WindowName, Width, Height, SDL.WindowFlags.Transparent);
+            device = SDL.CreateGPUDevice(SDL.GPUShaderFormat.SPIRV, true, "vulkan");
             renderer = SDL.CreateRenderer(window, null);
             SDL.SetWindowOpacity(window, 0f);
             FABRICK_DEBUG.Log($"[FABRICK_ENGINE] Using Driver: {SDL.GetCurrentVideoDriver()}");
@@ -259,6 +262,10 @@ namespace Fabrick.ENGINE.CORE
             FABRICK_DEBUG.Log("[FABRICK_ENGINE] |=============== FABRICK ENGINE ===============|");
             FABRICK_DEBUG.Log("[FABRICK_ENGINE] Fabrick Engine Update/Running Phase!!");
             FABRICK_DEBUG.Log("");
+
+            // Shader Thing
+            //nint Frag = FABRICK_SHADER_MANAGER.LoadShader(device, "Grayscale.frag.spv");
+            
             return true;
         }
 

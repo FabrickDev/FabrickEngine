@@ -47,21 +47,21 @@ namespace Fabrick.ENGINE.VISUAL_NOVEL
         {
             foreach (FABRICK_VISUAL_NOVEL_PORTRAIT_CHAR ThisChar in PortraitsCastList.Values)
             {
-                ThisChar.InitializeAction?.Invoke();
+                ThisChar.EntityInitialize();
             }
         }
         internal static void PortraitUpdate()
         {
             foreach (FABRICK_VISUAL_NOVEL_PORTRAIT_CHAR ThisChar in PortraitsCastList.Values)
             {
-                ThisChar.UpdateAction?.Invoke();
+                if(ThisEngine != null) ThisChar.EntityUpdate(ThisEngine);
             }
         }
         internal static void PortraitRender()
         {
             foreach (FABRICK_VISUAL_NOVEL_PORTRAIT_CHAR ThisChar in PortraitsCastList.Values)
             {
-                ThisChar.RenderAction?.Invoke();
+                ThisChar.EntityRender();
             }
         }
     }
