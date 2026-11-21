@@ -1,6 +1,8 @@
+using System.Numerics;
 using Fabrick.ENGINE.CORE;
 using Fabrick.ENGINE.DEBUG;
 using Fabrick.ENGINE.INPUT;
+using Fabrick.ENGINE.RENDERER;
 using Fabrick.ENGINE.SCENE_MANAGER;
 using SDL3;
 
@@ -28,9 +30,12 @@ namespace Fabrick.ENGINE.VISUAL_NOVEL
         public static bool FormValueNext = true;
 
         private static List<string> NextModuleToExecute = new();
-        internal static void InitializeScenarioHandle()
+        internal static void InitializeScenarioHandle(FABRICK_ENGINE Engine)
         {
+            ThisEngine = Engine;
             // Testing Purpose
+            FABRICK_CAMERA VN_CAMERA = new(Vector2.Zero, ThisEngine.GetLogicalResolution());
+            FABRICK_CAMERA_MANAGER.AssignCamera("VISUAL NOVEL CAM", VN_CAMERA);
             AddScenario("Testing Scenario", "Test");
         }
         
@@ -41,6 +46,11 @@ namespace Fabrick.ENGINE.VISUAL_NOVEL
             // Testing Scenario Run
             if (FABRICK_INPUT.IsKeyDown(SDL.Scancode.F2))
             {
+                RunScenario("Testing Scenario", "Test");
+            }
+            if (FABRICK_INPUT.IsKeyPressed(SDL.Scancode.F3))
+            {
+                ReplaceScenarioModuleData("Testing Scenario", "Test", FABRICK_SCENARIO_RWDATA.LoadScenario("Testing Scenario", "Test"));
                 RunScenario("Testing Scenario", "Test");
             }
             if (VisualNovelEnded)
@@ -76,6 +86,8 @@ namespace Fabrick.ENGINE.VISUAL_NOVEL
                 FABRICK_SCENE_MANAGER.AddOverlaySceneRunList(VisualNovelSceneName);
                 VisualNovelStarting = true;
                 VisualNovelEnding = false;
+                CoiceList.Clear();
+                SelectedCoice = "";
                 FABRICK_DEBUG.Log("[FABRICK_SCENARIO_MANAGER] Starting Scenario: " + CurrentScenario);
                 return;
             }
@@ -108,11 +120,11 @@ namespace Fabrick.ENGINE.VISUAL_NOVEL
                     {
                         if (CoiceList[i] == SelectedCoice)
                         {
-                            CoiceList.Clear();
                             SetNextListScenario(ThisData.OutputToModule[Convert.ToString(i)]);
-                            SelectedCoice = "";
                         }
                     }
+                    CoiceList.Clear();
+                    SelectedCoice = "";
                     return;
                 }
                 if (ThisData.Type == SCENARIO_MODULE_TYPE.Dialogue)

@@ -8,7 +8,7 @@
     ".NETCoreApp,Version=v10.0": {
       "FABRICK_ENGINE/1.0.0": {
         "dependencies": {
-          "SDL3-CS": "3.4.2",
+          "SDL3-CS": "3.4.20",
           "SDL3-CS.Native": "3.4.2",
           "SDL3-CS.Native.Image": "3.5.0",
           "SDL3-CS.Native.Mixer": "3.2.0",
@@ -19,11 +19,11 @@
           "FABRICK_ENGINE.dll": {}
         }
       },
-      "SDL3-CS/3.4.2": {
+      "SDL3-CS/3.4.20": {
         "runtime": {
           "lib/net10.0/SDL3-CS.dll": {
-            "assemblyVersion": "3.4.2.0",
-            "fileVersion": "3.4.2.0"
+            "assemblyVersion": "3.4.20.0",
+            "fileVersion": "3.4.20.0"
           }
         }
       },
@@ -490,12 +490,12 @@
       "serviceable": false,
       "sha512": ""
     },
-    "SDL3-CS/3.4.2": {
+    "SDL3-CS/3.4.20": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-n6TAJACALo/JOVjItB5Sve981U6AmH3vodepQRKP8mH3RL1eHNGTxbVq/RliJFu60uyJB4/pfI+/M255cUuyGQ==",
-      "path": "sdl3-cs/3.4.2",
-      "hashPath": "sdl3-cs.3.4.2.nupkg.sha512"
+      "sha512": "sha512-bcFyPIxBFhik1zbw1/KDXNUwbuL8PyaT0twz6vxy94qbAoCsjYpk0r5ImaS+GTV9g6VXvj0GvvGUFrACYIt6Mw==",
+      "path": "sdl3-cs/3.4.20",
+      "hashPath": "sdl3-cs.3.4.20.nupkg.sha512"
     },
     "SDL3-CS.Native/3.4.2": {
       "type": "package",

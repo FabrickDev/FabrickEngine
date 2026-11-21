@@ -34,7 +34,7 @@ namespace Fabrick.ENGINE.ENTITY
                                         RenderAction = this.Render };
         }
 
-        public virtual void EntityInitialize()
+        public void EntityInitialize()
         {
             FABRICK_DEBUG.Log($"[FABRICK_ENTITY : {this.Name}] Initialize...");
             InitializeAction = Initialize;
@@ -42,13 +42,13 @@ namespace Fabrick.ENGINE.ENTITY
             RenderAction = Render;
             InitializeAction?.Invoke();
         }
-        public virtual void EntityUpdate(FABRICK_ENGINE Engine)
+        public void EntityUpdate(FABRICK_ENGINE Engine)
         {
             DeltaTime = Engine.DeltaTime;
             IsEngineDebugMode = Engine.IsEditorMode;
             UpdateAction?.Invoke();
         }
-        public virtual void EntityRender()
+        public void EntityRender()
         {
             DEBUG_EDITOR_Update();
             RenderAction?.Invoke();

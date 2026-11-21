@@ -62,7 +62,7 @@ namespace Fabrick.ENGINE.EDITOR.DIALOGUE_EDITOR
             // Variant Char
             if (ModuleData.DialogueCast.Length > 0)
             {
-                foreach (string ThisVariant in FABRICK_SCENARIO_MANAGER.PortraitsCastList[ModuleData.DialogueCast].Variant.Keys)
+                foreach (string ThisVariant in FABRICK_SCENARIO_MANAGER.PortraitsCastList[ModuleData.DialogueCast].VariantPortrait.Keys)
                 {
                     string[] vari = ThisVariant.Split(".");
                     if (vari[0] != ModuleData.DialogueCast)

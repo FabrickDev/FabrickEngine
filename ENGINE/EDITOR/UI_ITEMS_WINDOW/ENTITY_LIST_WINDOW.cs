@@ -8,11 +8,10 @@ Focushed: Color4
 
 using System.Numerics;
 using Fabrick.ENGINE.DEBUG;
-using Fabrick.ENGINE.INPUT;
 using Fabrick.ENGINE.MATH;
-using Fabrick.ENGINE.PHYSICS;
 using Fabrick.ENGINE.RENDERER;
-using SDL3;
+using Fabrick.ENGINE.SCENE_MANAGER;
+using Fabrick.ENGINE.VISUAL_NOVEL;
 
 namespace Fabrick.ENGINE.EDITOR.ITEMS
 {
@@ -40,7 +39,12 @@ namespace Fabrick.ENGINE.EDITOR.ITEMS
             Action?.Invoke();
         }
     }
-    public class LIST_WINDOW
+    public enum DataType
+    {
+        Entity = 0,
+        Scene = 1
+    }
+    public partial class LIST_WINDOW
     {
         private string WindowName = "";
         private bool IsFocused = false;
@@ -52,6 +56,9 @@ namespace Fabrick.ENGINE.EDITOR.ITEMS
         private bool MoveAreaState = false;
         private bool IsHide = false;
         private Vector2 MoveAreaOffset;
+
+        private bool IsEnableAdding = false;
+        private DataType AddingType = DataType.Entity;
         
         public void Initialize(string WindowName)
         {
@@ -95,116 +102,31 @@ namespace Fabrick.ENGINE.EDITOR.ITEMS
                 Draw_ButtonListHandle(List);
             }
         }
-        private void Draw_MainArea()
+        public void EnableAddingList(bool State, DataType InputDialogueType)
         {
-            // Draw Main Window Area
-            MainAreaPos = new Vector2(Pos.X, Pos.Y + MoveListArea.Y);
-            FABRICK_DRAW_SHAPE.DrawFillRect_UI(MainAreaPos, SizeWindow, EDITOR_MANAGER.Color2);
+            IsEnableAdding = State;
+            AddingType = InputDialogueType;
         }
-        private void Draw_ButtonListHandle(List<MENU_ITEM_ENTITY> List)
+
+        private void Adding_AddSceneHandle(string SceneName)
         {
-            if (List is null) return;
-
-            float BoxOffsetX = 4f;
-            float BoxOffsetY = 24f;
-            float PaddingEachBox = 4;
-
-            for (int i = 0; i < List.Count; i++)
+            if (SceneName.IsWhiteSpace())
             {
-                Vector2 _Pos = new Vector2(MainAreaPos.X + BoxOffsetX, MainAreaPos.Y + (BoxOffsetY * i) + (PaddingEachBox * (i + 1)));
-                Vector2 _Size = new Vector2(SizeWindow.X - BoxOffsetX * 3, BoxOffsetY);
-
-                if (List[i].IsFocused)
+                FABRICK_DEBUG.SimpleMessageError("[ENTITY_LIST_WINDOW] Cannot create new scene cuz SceneName is WhiteSpace!!");
+                return;
+            }
+            if (FABRICK_SCENE_MANAGER.AssignScene(SceneName, false, true))
+            {
+                FABRICK_SCENE_MANAGER.SetCurrentScene(SceneName);
+                for (int i = 0; i < FABRICK_DEV_SCENE_EDITOR.SceneList.Count; i++)
                 {
-                    FABRICK_DRAW_SHAPE.DrawFillRect_UI(_Pos, _Size, EDITOR_MANAGER.Color4);
-                }
-                else
-                {
-                    FABRICK_DRAW_SHAPE.DrawFillRect_UI(_Pos, _Size, EDITOR_MANAGER.Color1);
-                }
-
-                Vector2 _PosText = new Vector2(MainAreaPos.X + BoxOffsetX * 2, MainAreaPos.Y + (BoxOffsetY * i) + (PaddingEachBox * (i + 1)));
-                Vector2 _PosText2 = new Vector2(MainAreaPos.X + SizeWindow.X - (BoxOffsetX * 6), MainAreaPos.Y + (BoxOffsetY * i) + (PaddingEachBox * (i + 1)));
-
-                FABRICK_DRAW_TEXT.DrawDevText_UI(List[i].Name, _PosText, 2, EDITOR_MANAGER.Color3, Algin.Left);
-                FABRICK_DRAW_TEXT.DrawDevText_UI(List[i].EntityOrder.ToString(), _PosText2, 2, EDITOR_MANAGER.Color3, Algin.Right);
-
-                // OnClick Handle
-                if (IsFocused && !MoveAreaState)
-                {
-                    Box _B = new Box(_Pos, Vector2.Zero, _Size);
-                    if (FABRICK_COLLISIONS.IntersectCollisionPointBox(FABRICK_INPUT.GetMousePos_UI(), _B))
+                    if (FABRICK_DEV_SCENE_EDITOR.SceneList[i].Name == "NonOverlay@" + SceneName)
                     {
-                        if(FABRICK_INPUT.IsMousePressed(SDL.MouseButtonFlags.Left))
-                        {
-                            if (List[i].Action is not null)
-                            {
-                                List[i].Action!();
-                            }
-                        }
-                        if (FABRICK_INPUT.IsMousePressed(SDL.MouseButtonFlags.Right))
-                        {
-                            List[i].IsFocused = false;
-                        }
+                        FABRICK_DEV_SCENE_EDITOR.SceneList[i].IsFocused = true;
                     }
                 }
+                
             }
-        }
-        private void DragHandle()
-        {
-            Box MoveableArea = new Box(Pos, Vector2.Zero, MoveListArea);
-            if (FABRICK_INPUT.IsKeyUp(SDL.Scancode.LAlt) && FABRICK_COLLISIONS.IntersectCollisionPointBox(FABRICK_INPUT.GetMousePos_UI(), MoveableArea) && FABRICK_INPUT.IsMousePressed(SDL.MouseButtonFlags.Left) && !MoveAreaState)
-            {
-                MoveAreaState = true;
-                MoveAreaOffset = PosDrag - FABRICK_INPUT.GetMousePos_UI();
-            }
-            if (FABRICK_INPUT.IsMouseReleased(SDL.MouseButtonFlags.Left))
-            {
-                MoveAreaState = false;
-            }
-            if (MoveAreaState)
-            {
-                EDITOR_MANAGER.ChangeableFocusWindow = false;
-                PosDrag = FABRICK_INPUT.GetMousePos_UI() + MoveAreaOffset;
-            }
-        }
-        private void RightClick_HideHandle()
-        {
-             Box MoveableArea = new Box(Pos, Vector2.Zero, MoveListArea);
-            if (FABRICK_INPUT.IsMousePressed(SDL.MouseButtonFlags.Right) && FABRICK_COLLISIONS.IntersectCollisionPointBox(FABRICK_INPUT.GetMousePos_UI(), MoveableArea))
-            {
-                IsHide = !IsHide;
-            }
-        }
-        public string OnFocusClick()
-        {
-            string name = EDITOR_MANAGER.FocusWindow;
-            if (FABRICK_COLLISIONS.MouseClickToBox_Pressed(GetWindowBox(), SDL.MouseButtonFlags.Left, true)
-                && EDITOR_MANAGER.FocusWindow != WindowName
-                && EDITOR_MANAGER.ChangeableFocusWindow)
-            {
-                name = WindowName;
-            }
-            return name;
-        }
-        private void FocusHandler()
-        {
-            if (EDITOR_MANAGER.FocusWindow == WindowName)
-            {
-                IsFocused = true;
-            }
-            else
-            {
-                IsFocused = false;
-            }
-        }
-        public Box GetWindowBox()
-        {
-            return new Box(this.Pos, Vector2.Zero, new Vector2(SizeWindow.X, MoveListArea.Y + SizeWindow.Y));
-        }
-        public bool IsDragged()
-        {
-            return MoveAreaState;
         }
     }
 }

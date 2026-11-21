@@ -5,6 +5,20 @@ namespace Fabrick.ENGINE.RENDERER
 {
     public partial class FABRICK_DRAW_TEXT
     {
+        private static int CurrentRenderSizeX, CurrentRenderSizeY = 0;
+        internal static void OnChangeRenderResolutionHandle()
+        {
+            if (ThisEngine is null) return;
+            SDL.GetCurrentRenderOutputSize(ThisEngine.GetRenderer(), out int W, out int H);
+            if (W == CurrentRenderSizeX && H == CurrentRenderSizeY)
+            {
+                return;
+            }
+            FABRICK_DEBUG.Log($"[FABRICK_DRAW_TEXT.MEMORY_MANAGEMENT] W: {W}, H: {H}");
+            DestroyAllCache();
+            CurrentRenderSizeX = W;
+            CurrentRenderSizeY = H;
+        }
         public static void DestroyAllFont()
         {
             foreach (FontData ThisFont in FontList.Values)

@@ -26,21 +26,18 @@ namespace Fabrick.ENGINE.VISUAL_NOVEL
         internal Box CoiceBasicShape = new(Vector2.Zero, new Vector2(900 / 2, 100 / 2), new Vector2(900, 100));
         internal Dictionary<string, Box> CoiceList = new();
 
-        private FABRICK_COLOR BoxColor = new(0xFF, 0xF3, 0xD1, 255);
+        private FABRICK_COLOR BoxColor = new(0xFF, 100, 100, 255);
 
         private float DistanceEachButton = 75f;
         public override void Initialize()
         {
             // Initialize Basic Shape
-            
         }
         public override void Update()
         {
-            
-        }
-        public override void Render()
-        {
+            if(IsEngineDebugMode) return;
             if(FABRICK_SCENARIO_MANAGER.CoiceList.Count == 0) return;
+            FABRICK_DEBUG.Log("Coice Updating...");
             CoiceList.Clear();
             int ButtonCount = FABRICK_SCENARIO_MANAGER.CoiceList.Count;
             float TotalLength = ButtonCount * CoiceBasicShape.GetSize().Y + (ButtonCount - 1) * DistanceEachButton;
@@ -53,14 +50,56 @@ namespace Fabrick.ENGINE.VISUAL_NOVEL
                 i++;
             }
 
+            bool SelectedCoice = false;
             // Input Response
             foreach (string ThisKey in CoiceList.Keys)
             {
                 if (FABRICK_COLLISIONS.MouseClickToBox_Pressed(CoiceList[ThisKey], SDL3.SDL.MouseButtonFlags.Left))
                 {
+                    SelectedCoice = true;
                     FABRICK_SCENARIO_MANAGER.SelectedCoice = ThisKey;
+                    break;
                 }
             }
+            if (SelectedCoice)
+            {
+                CoiceList.Clear();
+            }
+        }
+        public override void Render()
+        {
+            if (IsEngineDebugMode)
+            {
+                if(FABRICK_SCENARIO_MANAGER.CoiceList.Count == 0) return;
+                CoiceList.Clear();
+                int ButtonCount = FABRICK_SCENARIO_MANAGER.CoiceList.Count;
+                float TotalLength = ButtonCount * CoiceBasicShape.GetSize().Y + (ButtonCount - 1) * DistanceEachButton;
+                float StartPos = Transform.GetPosition().Y - TotalLength / 2f;
+                int i = 0;
+                foreach (string ThisCoice in FABRICK_SCENARIO_MANAGER.CoiceList)
+                {
+                    float BoxPosY = StartPos + CoiceBasicShape.GetSize().Y / 2 + i * (CoiceBasicShape.GetSize().Y + DistanceEachButton);
+                    CoiceList.Add(ThisCoice, new(new Vector2(Transform.GetPosition().X, BoxPosY), CoiceBasicShape.GetOffset(), CoiceBasicShape.GetSize()));
+                    i++;
+                }
+
+                // Input Response
+                bool SelectedCoice = false;
+                foreach (string ThisKey in CoiceList.Keys)
+                {
+                    if (FABRICK_COLLISIONS.MouseClickToBox_Pressed(CoiceList[ThisKey], SDL3.SDL.MouseButtonFlags.Left))
+                    {
+                        FABRICK_SCENARIO_MANAGER.SelectedCoice = ThisKey;
+                        SelectedCoice = true;
+                        break;
+                    }
+                }
+                if (SelectedCoice)
+                {
+                    CoiceList.Clear();
+                }
+            }
+
             foreach (string ThisKey in CoiceList.Keys)
             {
                 //FABRICK_DEBUG.Log($"Pos: {CoiceList[ThisKey].GetPos()}, Size: {ThisBox.GetSize()}");

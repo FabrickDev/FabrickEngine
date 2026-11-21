@@ -6,6 +6,7 @@ using Fabrick.ENGINE.INPUT;
 using Fabrick.ENGINE.MATH;
 using Fabrick.ENGINE.RENDERER;
 using Fabrick.ENGINE.SCENE_MANAGER;
+using Fabrick.ENGINE.VISUAL_NOVEL;
 
 namespace Fabrick.ENGINE.EDITOR
 {
@@ -125,18 +126,18 @@ namespace Fabrick.ENGINE.EDITOR
                 }
             }
         }
-        public static void AddObjectList(FABRICK_ENTITY Entity)
+        public static void AddObjectList(FABRICK_ENTITY Entity, string ExtraName = "")
         {
             bool Cancel = false;
-            MENU_ITEM_ENTITY Item = new MENU_ITEM_ENTITY(Entity.Name, Entity.Id, Entity.Category, Entity.Unremovable, Entity.EntityOrder, ()=>ActionOnClick(Entity.Name, Entity.Id, Entity.Category, Entity.Unremovable, Entity.EntityOrder));
+            MENU_ITEM_ENTITY Item = new MENU_ITEM_ENTITY(Entity.Name + ExtraName, Entity.Id, Entity.Category, Entity.Unremovable, Entity.EntityOrder, ()=>ActionOnClick(Entity.Name + ExtraName, Entity.Id, Entity.Category, Entity.Unremovable, Entity.EntityOrder));
 
-            for (int i = 0; i < ObjectList.Count; i++)
-            {
-                if (ObjectList[i].Name == Item.Name && ObjectList[i].Id == Item.Id && ObjectList[i].Category == Item.Category && Item.Unremovable == ObjectList[i].Unremovable && Item.EntityOrder == ObjectList[i].EntityOrder)
-                {
-                    Cancel = false;
-                }
-            }
+            // for (int i = 0; i < ObjectList.Count; i++)
+            // {
+            //     if (ObjectList[i].Name == Item.Name && ObjectList[i].Id == Item.Id && ObjectList[i].Category == Item.Category && Item.Unremovable == ObjectList[i].Unremovable && Item.EntityOrder == ObjectList[i].EntityOrder)
+            //     {
+            //         Cancel = false;
+            //     }
+            // }
             if (Cancel)
             {
                 return;
@@ -178,6 +179,39 @@ namespace Fabrick.ENGINE.EDITOR
                             FABRICK_ENTITY_MANAGER.UNREMOVABLE_ENTITY_LIST[FABRICK_ENTITY_MANAGER.UNREMOVABLE_ENTITY_LIST.IndexOf(ThisEntity)].Transform = MANIPULATOR.UpdateEntity(ThisEntity.Transform);
                         }
                     }
+                    if (FABRICK_SCENE_MANAGER.IsAllNonOverlaySceneStopped)
+                    {
+                        FABRICK_ENTITY? ThisEntity;
+                        foreach (string ThisKeyEntity in FABRICK_SCENARIO_MANAGER.PortraitsCastList.Keys)
+                        {
+                            ThisEntity = FABRICK_SCENARIO_MANAGER.PortraitsCastList[ThisKeyEntity];
+
+                            if (ThisObject.Name == ThisEntity.Name + "@" + ThisKeyEntity && ThisObject.Id == ThisEntity.Id && ThisObject.Category == ThisEntity.Category && ThisObject.Unremovable == ThisEntity.Unremovable && ThisObject.EntityOrder == ThisEntity.EntityOrder)
+                            {
+                                FABRICK_DRAW_SHAPE.DrawRect(ThisEntity.Transform.GetPosition() - new Vector2(15, 15), new Vector2(30, 30), new FABRICK_COLOR(255, 0, 255, 255));
+                                MANIPULATOR.SetPosition(ThisEntity.Transform.GetPosition());
+                                MANIPULATOR.SetActiveState(true);
+                                FABRICK_SCENARIO_MANAGER.PortraitsCastList[ThisKeyEntity].Transform = MANIPULATOR.UpdateEntity(ThisEntity.Transform);
+                            }
+                        }
+
+                        ThisEntity = FABRICK_SCENARIO_MANAGER.ThisDialogueText;
+                        if (ThisEntity != null && ThisObject.Name == ThisEntity.Name && ThisObject.Id == ThisEntity.Id && ThisObject.Category == ThisEntity.Category && ThisObject.Unremovable == ThisEntity.Unremovable && ThisObject.EntityOrder == ThisEntity.EntityOrder)
+                        {
+                            FABRICK_DRAW_SHAPE.DrawRect(ThisEntity.Transform.GetPosition() - new Vector2(15, 15), new Vector2(30, 30), new FABRICK_COLOR(255, 0, 255, 255));
+                            MANIPULATOR.SetPosition(ThisEntity.Transform.GetPosition());
+                            MANIPULATOR.SetActiveState(true);
+                            FABRICK_SCENARIO_MANAGER.ThisDialogueText.Transform = MANIPULATOR.UpdateEntity(ThisEntity.Transform);
+                        }
+                        ThisEntity = FABRICK_SCENARIO_MANAGER.CoiceEntity;
+                        if (ThisEntity != null && ThisObject.Name == ThisEntity.Name && ThisObject.Id == ThisEntity.Id && ThisObject.Category == ThisEntity.Category && ThisObject.Unremovable == ThisEntity.Unremovable && ThisObject.EntityOrder == ThisEntity.EntityOrder)
+                        {
+                            FABRICK_DRAW_SHAPE.DrawRect(ThisEntity.Transform.GetPosition() - new Vector2(15, 15), new Vector2(30, 30), new FABRICK_COLOR(255, 0, 255, 255));
+                            MANIPULATOR.SetPosition(ThisEntity.Transform.GetPosition());
+                            MANIPULATOR.SetActiveState(true);
+                            FABRICK_SCENARIO_MANAGER.CoiceEntity.Transform = MANIPULATOR.UpdateEntity(ThisEntity.Transform);
+                        }
+                    }
                 }
             }
         }
@@ -187,42 +221,104 @@ namespace Fabrick.ENGINE.EDITOR
             List<bool> IsFocushedSave = new List<bool>();
             
             int PrevCount = 0;
-            for (int i = 0; i < FABRICK_ENTITY_MANAGER.ENTITY_LIST.Count; i++)
+            if (!FABRICK_SCENE_MANAGER.IsAllNonOverlaySceneStopped)
             {
-                IsFocushedSave.Add(ObjectList[i].IsFocused);
-                PrevCount++;
+                for (int i = 0; i < FABRICK_ENTITY_MANAGER.ENTITY_LIST.Count; i++)
+                {
+                    IsFocushedSave.Add(ObjectList[i].IsFocused);
+                    PrevCount++;
+                }
+                for (int i = 0; i < FABRICK_ENTITY_MANAGER.UNREMOVABLE_ENTITY_LIST.Count; i++)
+                {
+                    IsFocushedSave.Add(ObjectList[PrevCount + i].IsFocused);
+                    PrevCount++;
+                }
             }
-            for (int i = 0; i < FABRICK_ENTITY_MANAGER.UNREMOVABLE_ENTITY_LIST.Count; i++)
+            if (FABRICK_SCENE_MANAGER.IsAllNonOverlaySceneStopped)
             {
-                IsFocushedSave.Add(ObjectList[PrevCount + i].IsFocused);
-                PrevCount++;
+                int i = 0;
+                foreach (string ThisKey in FABRICK_SCENARIO_MANAGER.PortraitsCastList.Keys)
+                {
+                    IsFocushedSave.Add(ObjectList[i].IsFocused);
+                    PrevCount++;
+                    i++;
+                }
+                if (FABRICK_SCENARIO_MANAGER.ThisDialogueText != null)
+                {
+                    IsFocushedSave.Add(ObjectList[PrevCount].IsFocused);
+                    PrevCount++;
+                }
+                if (FABRICK_SCENARIO_MANAGER.CoiceEntity != null)
+                {
+                    IsFocushedSave.Add(ObjectList[PrevCount].IsFocused);
+                }
             }
+            
 
             ObjectList.Clear();
             PrevCount = 0;
 
-            for (int i = 0; i < FABRICK_ENTITY_MANAGER.ENTITY_LIST.Count; i++)
+            if (!FABRICK_SCENE_MANAGER.IsAllNonOverlaySceneStopped)
             {
-                AddObjectList(FABRICK_ENTITY_MANAGER.ENTITY_LIST[i]);
-                ObjectList[i].IsFocused = IsFocushedSave[i];
-                PrevCount++;
+                for (int i = 0; i < FABRICK_ENTITY_MANAGER.ENTITY_LIST.Count; i++)
+                {
+                    AddObjectList(FABRICK_ENTITY_MANAGER.ENTITY_LIST[i]);
+                    ObjectList[i].IsFocused = IsFocushedSave[i];
+                    PrevCount++;
+                }
+                for (int i = 0; i < FABRICK_ENTITY_MANAGER.UNREMOVABLE_ENTITY_LIST.Count; i++)
+                {
+                    AddObjectList(FABRICK_ENTITY_MANAGER.UNREMOVABLE_ENTITY_LIST[i]);
+                    ObjectList[PrevCount + i].IsFocused = IsFocushedSave[PrevCount + i];
+                    PrevCount++;
+                }
             }
-            for (int i = 0; i < FABRICK_ENTITY_MANAGER.UNREMOVABLE_ENTITY_LIST.Count; i++)
+
+            if (FABRICK_SCENE_MANAGER.IsAllNonOverlaySceneStopped)
             {
-                AddObjectList(FABRICK_ENTITY_MANAGER.UNREMOVABLE_ENTITY_LIST[i]);
-                ObjectList[PrevCount + i].IsFocused = IsFocushedSave[PrevCount + i];
-                PrevCount++;
+                int i = 0;
+                foreach (string ThisKey in FABRICK_SCENARIO_MANAGER.PortraitsCastList.Keys)
+                {
+                    AddObjectList(FABRICK_SCENARIO_MANAGER.PortraitsCastList[ThisKey], "@" + ThisKey);
+                    ObjectList[PrevCount + i].IsFocused = IsFocushedSave[PrevCount + i];
+                    i++;
+                }
+                PrevCount = i;
+                if (FABRICK_SCENARIO_MANAGER.ThisDialogueText != null)
+                {
+                    AddObjectList(FABRICK_SCENARIO_MANAGER.ThisDialogueText);
+                    ObjectList[PrevCount].IsFocused = IsFocushedSave[PrevCount];
+                    PrevCount++;
+                }
+                if (FABRICK_SCENARIO_MANAGER.CoiceEntity != null)
+                {
+                    AddObjectList(FABRICK_SCENARIO_MANAGER.CoiceEntity);
+                    ObjectList[PrevCount].IsFocused = IsFocushedSave[PrevCount];
+                }
             }
         }
         private void InitialGetItem()
         {
-            for (int i = 0; i < FABRICK_ENTITY_MANAGER.ENTITY_LIST.Count; i++)
+            if (!FABRICK_SCENE_MANAGER.IsAllNonOverlaySceneStopped)
             {
-                AddObjectList(FABRICK_ENTITY_MANAGER.ENTITY_LIST[i]);
+                for (int i = 0; i < FABRICK_ENTITY_MANAGER.ENTITY_LIST.Count; i++)
+                {
+                    AddObjectList(FABRICK_ENTITY_MANAGER.ENTITY_LIST[i]);
+                }
+                for (int i = 0; i < FABRICK_ENTITY_MANAGER.UNREMOVABLE_ENTITY_LIST.Count; i++)
+                {
+                    AddObjectList(FABRICK_ENTITY_MANAGER.UNREMOVABLE_ENTITY_LIST[i]);
+                }
             }
-            for (int i = 0; i < FABRICK_ENTITY_MANAGER.UNREMOVABLE_ENTITY_LIST.Count; i++)
+            else
             {
-                AddObjectList(FABRICK_ENTITY_MANAGER.UNREMOVABLE_ENTITY_LIST[i]);
+                foreach (string ThisKey in FABRICK_SCENARIO_MANAGER.PortraitsCastList.Keys)
+                {
+                    AddObjectList(FABRICK_SCENARIO_MANAGER.PortraitsCastList[ThisKey], "@" + ThisKey);
+                }
+                
+                if(FABRICK_SCENARIO_MANAGER.ThisDialogueText != null) AddObjectList(FABRICK_SCENARIO_MANAGER.ThisDialogueText);
+                if(FABRICK_SCENARIO_MANAGER.CoiceEntity != null) AddObjectList(FABRICK_SCENARIO_MANAGER.CoiceEntity);
             }
         }
     }

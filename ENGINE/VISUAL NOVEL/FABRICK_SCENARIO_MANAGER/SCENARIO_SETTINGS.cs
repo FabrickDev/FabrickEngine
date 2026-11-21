@@ -54,6 +54,7 @@ namespace Fabrick.ENGINE.VISUAL_NOVEL
                 VisualNovelTextNext = true;
                 VisualNovelText = "";
                 NextModuleToExecute.Clear();
+                CoiceList.Clear();
                 CurrentScenario = ThisScenario;
                 for (int i = 0; i < ScenarioList[ThisScenario].Count; i++)
                 {
@@ -76,7 +77,7 @@ namespace Fabrick.ENGINE.VISUAL_NOVEL
                 FABRICK_DEBUG.Log(thisMod);
             }
             if(NextModuleToExecute.Count > 0) NextModuleToExecute.Clear();
-            NextModuleToExecute = Scenarios.ToList();
+            NextModuleToExecute = Scenarios;
         }
     }
 }

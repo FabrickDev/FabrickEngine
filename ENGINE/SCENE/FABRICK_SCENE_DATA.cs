@@ -19,6 +19,7 @@ namespace Fabrick.ENGINE.SCENE_MANAGER
         public string SceneName = "";
         public bool IsMain = false;
         public bool IsOverlay = false;
+        public bool IsNew = false;
 
         public FABRICK_ENGINE? Engine;
         public bool IsRunning {get; set;}
@@ -33,6 +34,7 @@ namespace Fabrick.ENGINE.SCENE_MANAGER
         internal void SceneInitialize()
         {
             if(Initialized) return;
+            FABRICK_DEBUG.Log($"[FABRICK_SCENE_DATA : {SceneName}] Initialize Scene...");
             Leaved = false;
             Initialized = true;
 
@@ -45,10 +47,9 @@ namespace Fabrick.ENGINE.SCENE_MANAGER
             VN_UpdateAction = VN_Update;
             VN_RenderAction = VN_Render;
             VN_LeaveAction = VN_Leave;
-            FABRICK_DEBUG.Log($"[FABRICK_SCENE_DATA : {SceneName}] Initialize Scene...");
-            FABRICK_DEBUG.Log($"[SCENE_MANAGER] Total Entity: {FABRICK_ENTITY_MANAGER.ENTITY_LIST.Count}");
             InitializeAction?.Invoke();
             VN_InitializeAction?.Invoke();
+            FABRICK_DEBUG.Log($"[SCENE_MANAGER] Total Entity: {FABRICK_ENTITY_MANAGER.ENTITY_LIST.Count}");
         }
 
         internal void SceneUpdate(FABRICK_ENGINE Engine)

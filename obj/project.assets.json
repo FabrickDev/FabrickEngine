@@ -14,7 +14,7 @@
           "build/Microsoft.NET.ILLink.Tasks.props": {}
         }
       },
-      "SDL3-CS/3.4.2": {
+      "SDL3-CS/3.4.20": {
         "type": "package",
         "compile": {
           "lib/net10.0/SDL3-CS.dll": {
@@ -507,10 +507,10 @@
         "useSharedDesignerContext.txt"
       ]
     },
-    "SDL3-CS/3.4.2": {
-      "sha512": "n6TAJACALo/JOVjItB5Sve981U6AmH3vodepQRKP8mH3RL1eHNGTxbVq/RliJFu60uyJB4/pfI+/M255cUuyGQ==",
+    "SDL3-CS/3.4.20": {
+      "sha512": "bcFyPIxBFhik1zbw1/KDXNUwbuL8PyaT0twz6vxy94qbAoCsjYpk0r5ImaS+GTV9g6VXvj0GvvGUFrACYIt6Mw==",
       "type": "package",
-      "path": "sdl3-cs/3.4.2",
+      "path": "sdl3-cs/3.4.20",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
@@ -519,6 +519,7 @@
         "README-nuget.md",
         "README.md",
         "SDL3-CS.xml",
+        "analyzers/dotnet/cs/SDL3-CS.Generators.dll",
         "lib/net10.0/SDL3-CS.dll",
         "lib/net10.0/SDL3-CS.xml",
         "lib/net7.0/SDL3-CS.dll",
@@ -528,7 +529,7 @@
         "lib/net9.0/SDL3-CS.dll",
         "lib/net9.0/SDL3-CS.xml",
         "logo.png",
-        "sdl3-cs.3.4.2.nupkg.sha512",
+        "sdl3-cs.3.4.20.nupkg.sha512",
         "sdl3-cs.nuspec"
       ]
     },
@@ -728,7 +729,7 @@
     "net10.0-windows": [
       "Microsoft.DotNet.ILCompiler >= 10.0.12",
       "Microsoft.NET.ILLink.Tasks >= 10.0.12",
-      "SDL3-CS >= 3.4.2",
+      "SDL3-CS >= 3.4.20",
       "SDL3-CS.Native >= 3.4.2",
       "SDL3-CS.Native.Image >= 3.5.0",
       "SDL3-CS.Native.Mixer >= 3.2.0",
@@ -803,7 +804,7 @@
           },
           "SDL3-CS": {
             "target": "Package",
-            "version": "[3.4.2, )"
+            "version": "[3.4.20, )"
           },
           "SDL3-CS.Native": {
             "target": "Package",

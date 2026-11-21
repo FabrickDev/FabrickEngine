@@ -14,8 +14,9 @@ namespace Fabrick.ENGINE.SCENE_MANAGER
         public static Dictionary<string, SCENE_DATA> SceneList = new();
         public static Dictionary<string, SCENE_DATA> OverlaySceneList = new();
         public static List<string> OverlaySceneRunList = new();
+        public static bool IsAllNonOverlaySceneStopped = false;
 
-        public static void AssignScene(string Name, bool IsMain)
+        public static bool AssignScene(string Name, bool IsMain, bool IsNew = false, bool NoWarning = false)
         {
             bool _IsMain = IsMain;
             if (SceneList.Count == 0)
@@ -35,17 +36,27 @@ namespace Fabrick.ENGINE.SCENE_MANAGER
             
             if (SceneList.ContainsKey(Name))
             {
-                FABRICK_DEBUG.SimpleMessageWarning($"[SCENE_MANAGER] Try to Assign new Scene: {Name} already exist!");
-                return;
+                if (IsNew && !NoWarning)
+                {
+                    FABRICK_DEBUG.SimpleMessageWarning($"[SCENE_MANAGER] Try to Assign new Scene: {Name} already exist!");
+                    return false;
+                }
+                FABRICK_DEBUG.Log($"[SCENE_MANAGER] Try to Assign new Scene: {Name} already exist!");
+                return false;
             }
+            
+            SceneList[Name] = new FABRICK_SCENE(Name)
+            {
+                SceneName = Name,
+                IsMain = _IsMain,
+                IsNew = IsNew
+            };
             if (_IsMain)
             {
                 SetCurrentScene(Name);
             }
-            SceneList[Name] = new FABRICK_SCENE(Name);
-            SceneList[Name].SceneName = Name;
-            SceneList[Name].IsMain = _IsMain;
             FABRICK_DEBUG.Log("[SCENE MANAGER] Added Scene: " + Name);
+            return true;
         }
         public static void AssignScene(string Name)
         {
@@ -114,10 +125,15 @@ namespace Fabrick.ENGINE.SCENE_MANAGER
                 return;
             }
             FABRICK_DEBUG.Log($"[SCENE MANAGER] Stopping Scene Overlay From Run List: {SceneName}");
+            OverlaySceneList[SceneName].SceneLeave();
             OverlaySceneRunList.Remove(SceneName);
         }
         public static void ClearOverlaySceneRunList()
         {
+            foreach (string ThisScene in OverlaySceneRunList)
+            {
+                OverlaySceneList[ThisScene].SceneLeave();
+            }
             OverlaySceneRunList.Clear();
         }
 
@@ -217,13 +233,17 @@ namespace Fabrick.ENGINE.SCENE_MANAGER
             {
                 return;
             }
-            // Leave Handle
-            foreach (string ThisSceneKey in SceneList.Keys)
+            if (!IsAllNonOverlaySceneStopped)
             {
-                if (ThisSceneKey != CurrentSceneName) SceneList[ThisSceneKey].SceneLeave();
-            }
+                // Leave Handle
+                foreach (string ThisSceneKey in SceneList.Keys)
+                {
+                    if (ThisSceneKey != CurrentSceneName) SceneList[ThisSceneKey].SceneLeave();
+                }
 
-            RunScene(CurrentSceneName, Engine);
+                RunScene(CurrentSceneName, Engine);
+            }
+            
             //FABRICK_DEBUG.Log($"[FABRICK_SCENE_MANAGER] Updating: {GetCurrentScene()}");
 
             // Skip if Overlay Scene Null
@@ -279,7 +299,7 @@ namespace Fabrick.ENGINE.SCENE_MANAGER
         }
         public static void RenderAllScene()
         {
-            if (SceneList.ContainsKey(CurrentSceneName))
+            if (!IsAllNonOverlaySceneStopped && SceneList.ContainsKey(CurrentSceneName))
             {
                 SceneList[CurrentSceneName].SceneRender();
                 //FABRICK_DEBUG.Log($"[FABRICK_SCENE_MANAGER] Rendering: {GetCurrentScene()}");
@@ -342,6 +362,22 @@ namespace Fabrick.ENGINE.SCENE_MANAGER
                 OverlaySceneList[ThisKey].SceneLeave();
             }
             OverlaySceneList.Clear();
+        }
+
+        public static void StopAllNonOverlayScene()
+        {
+            IsAllNonOverlaySceneStopped = true;
+            foreach (string ThisKey in SceneList.Keys)
+            {
+                if (SceneList[ThisKey].IsRunning)
+                {
+                    SceneList[ThisKey].SceneLeave();
+                }
+            }
+        }
+        public static void StartAllNonOverlayScene()
+        {
+            IsAllNonOverlaySceneStopped = false;
         }
 
         // public static void LeaveSceneHandle()

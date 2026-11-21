@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using Fabrick.ENGINE.DEBUG;
+using Fabrick.ENGINE.EDITOR;
 using Fabrick.ENGINE.SCENE_MANAGER;
 
 namespace Fabrick.ENGINE.ENTITY
@@ -37,6 +38,10 @@ namespace Fabrick.ENGINE.ENTITY
 
             foreach (SCENE_DATA ThisScene in FABRICK_SCENE_MANAGER.SceneList.Values)
             {
+                if (ThisScene.SceneName.Contains(EDITOR_MANAGER.DevKey))
+                {
+                    continue;
+                }
                 L.Add(SceneToRWData(ThisScene));
             }
 

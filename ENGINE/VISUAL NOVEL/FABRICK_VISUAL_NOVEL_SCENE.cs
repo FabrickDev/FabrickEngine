@@ -68,9 +68,15 @@ namespace Fabrick.ENGINE.SCENE_MANAGER
         }
         internal override void VN_Render()
         {
-            FABRICK_SCENARIO_MANAGER.DialogueTextRender();
             FABRICK_SCENARIO_MANAGER.PortraitRender();
+            FABRICK_SCENARIO_MANAGER.DialogueTextRender();
             FABRICK_SCENARIO_MANAGER.CoiceRender(); // Keep on priority!!
+        }
+        public override void Leave()
+        {
+            FABRICK_SCENARIO_MANAGER.CoiceEntity = null;
+            FABRICK_SCENARIO_MANAGER.ThisDialogueText = null;
+            FABRICK_SCENARIO_MANAGER.PortraitsCastList.Clear();
         }
     }
 }

@@ -11,6 +11,7 @@ namespace Fabrick.ENGINE.SCENE_MANAGER
         }
         public override void Initialize()
         {
+            if(IsNew) return;
             if (FABRICK_ENTITY_RWDATA.ReadEntityData(SceneName))
             {
                 FABRICK_DEBUG.Log($"[FABRICK_SCENE : {SceneName}] Initializing All Entity");

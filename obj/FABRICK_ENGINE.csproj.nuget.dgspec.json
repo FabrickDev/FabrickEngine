@@ -67,7 +67,7 @@
             },
             "SDL3-CS": {
               "target": "Package",
-              "version": "[3.4.2, )"
+              "version": "[3.4.20, )"
             },
             "SDL3-CS.Native": {
               "target": "Package",

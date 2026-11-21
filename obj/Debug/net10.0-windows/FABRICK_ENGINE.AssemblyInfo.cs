@@ -10,10 +10,10 @@
 using System;
 using System.Reflection;
 
-[assembly: System.Reflection.AssemblyCompanyAttribute("FABRICK_ENGINE")]
+[assembly: System.Reflection.AssemblyCompanyAttribute("Fabrick Dev")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e1c2f6c52a0ac37174c70033c3949ac182256bcf")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+480148128bd7e24f043981766df906a9ff4bb6e3")]
 [assembly: System.Reflection.AssemblyProductAttribute("FABRICK_ENGINE")]
 [assembly: System.Reflection.AssemblyTitleAttribute("FABRICK_ENGINE")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

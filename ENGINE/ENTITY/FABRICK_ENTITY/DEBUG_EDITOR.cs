@@ -8,7 +8,7 @@ namespace Fabrick.ENGINE.ENTITY
     public partial class FABRICK_ENTITY
     {
         // Debug Mode
-        private bool IsEngineDebugMode = false;
+        internal bool IsEngineDebugMode = false;
         private Box DebugBoxCollision = new(Vector2.Zero, new Vector2(-50, -50), new Vector2(100, 100));
         private FABRICK_COLOR DebugBoxColor = FABRICK_COLOR.Orange();
 

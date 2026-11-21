@@ -120,24 +120,19 @@ namespace Fabrick.ENGINE.RENDERER
         // Default Render
         public static bool RenderTexture(string name,float Transparency = 0f,  bool isUi = false, SDL.FlipMode Flip = SDL.FlipMode.None)
         {
-            if (!FABRICK_TEXTURE_MANAGER.TextureDataList.ContainsKey(name))
-            {
-                FABRICK_DEBUG.SimpleMessageWarning("Texture " + name + " Doesn't Exist!!");
-                return false;
-            }
-
             SDL.FRect _Dst = FABRICK_TEXTURE_MANAGER.TextureDataList[name].DST;
             
             return RenderTexture(name, new Vector2(_Dst.X, _Dst.Y),Transparency, isUi, 1, Flip);
         }
+        public static bool RenderTexture(string name, Vector2 Pos, float Size = 1, float Transparency = 0f, bool isUi = false, float Parallax = 1, SDL.FlipMode Flip = SDL.FlipMode.None)
+        {
+            SDL.FRect _Dst = FABRICK_TEXTURE_MANAGER.TextureDataList[name].DST;
+            
+            return RenderTexture(name, Pos, new Vector2(_Dst.W, _Dst.H) * Size, Transparency, isUi, Parallax, Flip);
+        }
+
         public static bool RenderTexture(string name, Vector2 Pos, float Transparency = 0f, bool isUi = false, float Parallax = 1, SDL.FlipMode Flip = SDL.FlipMode.None)
         {
-            if (!FABRICK_TEXTURE_MANAGER.TextureDataList.ContainsKey(name))
-            {
-                FABRICK_DEBUG.SimpleMessageWarning("Texture " + name + " Doesn't Exist!!");
-                return false;
-            }
-
             SDL.FRect _Dst = FABRICK_TEXTURE_MANAGER.TextureDataList[name].DST;
             
             return RenderTexture(name, Pos, new Vector2(_Dst.W, _Dst.H), Transparency, isUi, Parallax, Flip);

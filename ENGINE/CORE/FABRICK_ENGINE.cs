@@ -11,6 +11,7 @@ using Fabrick.ENGINE.ANIMATION;
 using Fabrick.ENGINE.MATH;
 using Fabrick.ENGINE.IOFILES;
 using Fabrick.ENGINE.VISUAL_NOVEL;
+using System.Data;
 
 /*
     References:
@@ -36,6 +37,9 @@ namespace Fabrick.ENGINE.CORE
         private nint window;
         private nint renderer;
         private nint device;
+        private nint RenderState;
+        private nint TargetScene;
+        private int TargetSceneX, TargetSceneY = 0;
 
         // Color "3F1E11"
         private FABRICK_COLOR DefaultBackgroundColor = new FABRICK_COLOR(0x3F, 0x1E, 0x11, 0xFF);
@@ -138,6 +142,8 @@ namespace Fabrick.ENGINE.CORE
 
             FABRICK_TEXTURE_MANAGER.Initialize();
             FABRICK_GLOBAL_VARIABLE_MANAGER.Initialize();
+            FABRICK_SCENE_RWDATA.ReadSceneData();
+            //FABRICK_SCENE_MANAGER.AssignScene("MAIN_SCENE", true, true, true);
 
             FABRICK_DEBUG.Log("[FABRICK_ENGINE] Initialize Video...");
             // if (!SDL.SetHint("SDL_RENDER_GPU_LOW_POWER", "0"))
@@ -180,14 +186,21 @@ namespace Fabrick.ENGINE.CORE
             //     FABRICK_DEBUG.Log("[FABRICK_ENGINE] Vulkan Available, set to Vulkan Driver rn.");
             // }
             
-            window = SDL.CreateWindow(WindowName, Width, Height, SDL.WindowFlags.Transparent);
-            device = SDL.CreateGPUDevice(SDL.GPUShaderFormat.SPIRV, true, "vulkan");
-            renderer = SDL.CreateRenderer(window, null);
+            //window = SDL.CreateWindow(WindowName, Width, Height, SDL.WindowFlags.Transparent);
+            window = SDL.CreateWindow(WindowName, Width, Height, 0);
+            device = SDL.CreateGPUDevice(SDL.GPUShaderFormat.SPIRV, true, null);
+            //renderer = SDL.CreateRenderer(window, null);
+            renderer = SDL.CreateGPURenderer(device, window);
+            if (renderer == 0)
+            {
+                FABRICK_DEBUG.SimpleMessageError("[FABRICK_ENGINE] " + SDL.GetError());
+            }
             SDL.SetWindowOpacity(window, 0f);
             FABRICK_DEBUG.Log($"[FABRICK_ENGINE] Using Driver: {SDL.GetCurrentVideoDriver()}");
             FABRICK_DEBUG.Log($"[FABRICK_ENGINE] Renderer API: {SDL.GetRendererName(renderer)}");
 
-
+            FABRICK_SHADER_MANAGER.GPUDevice = device;
+            FABRICK_SHADER_MANAGER.renderer = renderer;
             // if (!SDL.CreateWindowAndRenderer(WindowName, Width, Height, 0, out window, out renderer))
             // {
             //    FABRICK_DEBUG.SimpleMessageError($"Error creating window and renderer: {SDL.GetError()}");
@@ -198,6 +211,11 @@ namespace Fabrick.ENGINE.CORE
             // {
             //    FABRICK_DEBUG.Log($"[FABRICK_ENGINE] Renderer API: {SDL.GetRendererName(renderer)}");
             // }
+
+            // Testing Shader
+            // Post Porcessing
+            TargetScene = SDL.CreateTexture(renderer, SDL.PixelFormat.ARGB8888, SDL.TextureAccess.Target, (int)LogicalResolution.X, (int)LogicalResolution.Y);
+
 
             if (VSync == 1)
             {
@@ -265,7 +283,6 @@ namespace Fabrick.ENGINE.CORE
 
             // Shader Thing
             //nint Frag = FABRICK_SHADER_MANAGER.LoadShader(device, "Grayscale.frag.spv");
-            
             return true;
         }
 
@@ -282,7 +299,21 @@ namespace Fabrick.ENGINE.CORE
             // Loop
             while (EngineRunning)
             {
-                //MainComponentInitializeNUpdate();
+                // Deltatime & FPS Cacl
+                StartPerformanceCounter = EndPerformanceCounter;
+                prevTime = nowTime;
+                nowTime = SDL.GetTicks();
+                EndPerformanceCounter = SDL.GetPerformanceCounter();
+                DeltaTime = (nowTime - prevTime) / 1000.0f;
+                float Elapsed = (float)(EndPerformanceCounter - StartPerformanceCounter) / SDL.GetPerformanceFrequency();
+                FrameRate = 1.0f / Elapsed;
+                FrameRateInt = (int)FrameRate;
+
+                // Fullscreen Listener
+                TargetSceneResizeHandle();
+                FullscreenShortcut();
+                FABRICK_INPUT.AfterCycleHandle();
+
                 while (SDL.PollEvent(out RunEvent))
                 {
                     if ((SDL.EventType)RunEvent.Type == SDL.EventType.Quit)
@@ -292,20 +323,7 @@ namespace Fabrick.ENGINE.CORE
                     }
                     FABRICK_INPUT.MouseScrollEventHandle(RunEvent);
                 }
-
-                // Deltatime & FPS Cacl
-                StartPerformanceCounter = EndPerformanceCounter;
-                prevTime = nowTime;
-
-                nowTime = SDL.GetTicks();
-                EndPerformanceCounter = SDL.GetPerformanceCounter();
-                DeltaTime = (nowTime - prevTime) / 1000.0f;
-
-                float Elapsed = (float)(EndPerformanceCounter - StartPerformanceCounter) / SDL.GetPerformanceFrequency();
-                FrameRate = 1.0f / Elapsed;
-                FrameRateInt = (int)FrameRate;
                 
-
                 // ========================== Initialization Phase ========================== //
                 // Check if Function Initialize Available
                 if (FunctionInitializeList_Finished == false)
@@ -319,7 +337,7 @@ namespace Fabrick.ENGINE.CORE
                             FunctionInitializeList_Finished = true;
                         }
                     }
-                    FABRICK_ENTITY_MANAGER.InitializeAllEntity();
+                    //FABRICK_ENTITY_MANAGER.InitializeAllEntity();
                     //FABRICK_ENTITY_MANAGER.UpdateAllEntity(this);
                     if(FunctionInitializeList_Error == false)
                     {
@@ -341,9 +359,6 @@ namespace Fabrick.ENGINE.CORE
                     FABRICK_DEBUG.Log("[FABRICK_ENGINE] Initialize Function Complete!");
                 }
 
-                // Main Component Update
-                MainComponentUpdate();
-
                 // ========================== Update Phase ========================== //
                 // Check if Function Update Available
                 if (!FunctionUpdateList_Error && (FunctionUpdateList == null || !FunctionUpdateList.Any()))
@@ -355,62 +370,83 @@ namespace Fabrick.ENGINE.CORE
                         FABRICK_DEBUG.SimpleMessageError("[FABRICK_ENGINE] This Loop run nothing vro🥀");
                     }
                 }
-                
-                if(FunctionUpdateList_Error == false && !IsEditorMode)
-                {
-                    // Run Functions Update
-                    if(FunctionUpdateList != null)
-                    {
-                        for (int i = 0; i < FunctionUpdateList.Count; i++)
-                        {
-                            if (FunctionUpdateList != null) FunctionUpdateList[i]();
-                        }
-                    }
-                }
-                
-                if(RenderList_Error == false)
-                {
-                    // Run Functions Update
-                    if (RenderList != null)
-                    {
-                        for (int i = 0; i < RenderList.Count; i++)
-                        {
-                            if (RenderList != null) RenderList[i]();
-                        }
-                    }
-                }
 
-                // DevEditor Listener
-                DevEditorListener();
 
-                // Loop After Update
-                FABRICK_ANIMATION_FRAME_PLAY.Update();
-
-                // Cleanup and Reset Worker AutoPlay Frame Animation
-                SPRITE_SHEET_MANAGER.AutoPlayCleanWorker();
-                SPRITE_SHEET_MANAGER.AutoPlayResetInUseWorker();
-
-                // Render Loop
-                DrawFPS();
-                AppearHandle();
-                DisappearHandle();
-                SDL.RenderPresent(renderer);
-
+                SDL.SetRenderTarget(renderer, TargetScene);
+                SDL.SetRenderLogicalPresentation(renderer, (int)LogicalResolution.X, (int)LogicalResolution.Y, SDL.RendererLogicalPresentation.Letterbox);
                 SDL.SetRenderDrawColor(renderer, DefaultBackgroundColor.R, DefaultBackgroundColor.G, DefaultBackgroundColor.B, DefaultBackgroundColor.A);
                 SDL.RenderClear(renderer);
-
+                
                 FABRICK_DRAW_SHAPE.DrawFillRect_UI(Vector2.Zero, LogicalResolution, DefaultLogicalBackgroundColor);
 
-                // Fullscreen Listener
-                FullscreenShortcut();
-                FABRICK_INPUT.AfterCycleHandle();
+                MainComponentUpdate();
+                UpdateEx();
+                DevEditorListener();
 
-                // Deltatime End
-                //FABRICK_DEBUG.Log($"[FABRICK_ENGINE] Deltatime: {DeltaTime}");
-                //SDL.Delay(1);
-                // Animation Purpose
+                SDL.SetRenderTarget(renderer, nint.Zero);
+                SDL.SetRenderDrawColor(renderer, DefaultBackgroundColor.R, DefaultBackgroundColor.G, DefaultBackgroundColor.B, DefaultBackgroundColor.A);
+                SDL.RenderClear(renderer);
+                
+                //SDL.SetGPURenderState(renderer, RenderState);
+                SDL.RenderTexture(renderer, TargetScene, 0, 0);
+                //SDL.SetGPURenderState(renderer, 0);
+
+                DisappearHandle();
+                SDL.RenderPresent(renderer);
             }
             Quit();
+        }
+        private void UpdateEx()
+        {
+            //MainComponentInitializeNUpdate();
+            if(FunctionUpdateList_Error == false && !IsEditorMode)
+            {
+                // Run Functions Update
+                if(FunctionUpdateList != null)
+                {
+                    for (int i = 0; i < FunctionUpdateList?.Count; i++)
+                    {
+                        if (FunctionUpdateList != null) FunctionUpdateList[i]();
+                    }
+                }
+            }
+            
+            if(RenderList_Error == false)
+            {
+                // Run Functions Update
+                if (RenderList != null)
+                {
+                    for (int i = 0; i < RenderList?.Count; i++)
+                    {
+                        if (RenderList != null) RenderList[i]();
+                    }
+                }
+            }
+            // Loop After Update
+            FABRICK_ANIMATION_FRAME_PLAY.Update();
+            // Cleanup and Reset Worker AutoPlay Frame Animation
+            SPRITE_SHEET_MANAGER.AutoPlayCleanWorker();
+            SPRITE_SHEET_MANAGER.AutoPlayResetInUseWorker();
+            // Render Loop
+            DrawFPS();
+            AppearHandle();
+        }
+        private void TargetSceneResizeHandle()
+        {
+            SDL.GetCurrentRenderOutputSize(renderer, out int W, out int H);
+            if (TargetScene != 0 && W == TargetSceneX && H == TargetSceneY)
+            {
+                return;
+            }
+            if (TargetScene != 0)
+            {
+                SDL.DestroyTexture(TargetScene);
+            }
+            TargetScene = SDL.CreateTexture(renderer, SDL.PixelFormat.ARGB8888, SDL.TextureAccess.Target, W, H);
+            SDL.SetTextureScaleMode(TargetScene, SDL.ScaleMode.Linear);
+
+            TargetSceneX = W;
+            TargetSceneY = H;
         }
         public void Quit()
         {
@@ -432,7 +468,7 @@ namespace Fabrick.ENGINE.CORE
             FABRICK_VISUALIZE_SHAPE.renderer = renderer;
             FABRICK_DRAW_TEXTURE.renderer = renderer;
             FABRICK_CAMERA_MANAGER.Initialize(this);
-            FABRICK_SCENARIO_MANAGER.InitializeScenarioHandle();
+            FABRICK_SCENARIO_MANAGER.InitializeScenarioHandle(this);
 
             // Dev Purpose
             FABRICK_DEBUG.Log("[FABRICK_ENGINE] Initialize Dev Editor Manager...");
@@ -441,6 +477,7 @@ namespace Fabrick.ENGINE.CORE
         private void MainComponentUpdate()
         {
             // INPUT ENGINE UPDATE
+            FABRICK_DRAW_TEXT.OnChangeRenderResolutionHandle();
             FABRICK_INPUT.EngineUpdate(this);
             // Get Actual Resolution
             if (!SDL.GetRenderViewport(renderer, out SDL.Rect _Rec))
